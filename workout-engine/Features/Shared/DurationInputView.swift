@@ -9,7 +9,7 @@ struct DurationInputView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            stepperButton(systemName: "minus", label: String(localized: "Уменьшить")) {
+            stepperButton(systemName: "minus", label: L10n.t("Уменьшить")) {
                 adjust(by: -step)
             }
 
@@ -35,9 +35,9 @@ struct DurationInputView: View {
                 .onChange(of: isFocused) { _, focused in
                     if !focused { commitText() }
                 }
-                .accessibilityLabel(String(localized: "Длительность"))
+                .accessibilityLabel(L10n.t("Длительность"))
 
-            stepperButton(systemName: "plus", label: String(localized: "Увеличить")) {
+            stepperButton(systemName: "plus", label: L10n.t("Увеличить")) {
                 adjust(by: step)
             }
         }

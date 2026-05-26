@@ -71,7 +71,7 @@ struct ActiveWorkoutView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(String(localized: "Закрыть")) {
+                Button(L10n.t("Закрыть")) {
                     showStopConfirmation = true
                 }
                 .foregroundStyle(toolbarForeground)
@@ -79,15 +79,15 @@ struct ActiveWorkoutView: View {
             }
         }
         .confirmationDialog(
-            String(localized: "Остановить тренировку?"),
+            L10n.t("Остановить тренировку?"),
             isPresented: $showStopConfirmation,
             titleVisibility: .visible
         ) {
-            Button(String(localized: "Остановить"), role: .destructive) {
+            Button(L10n.t("Остановить"), role: .destructive) {
                 coordinator.stop()
                 dismiss()
             }
-            Button(String(localized: "Продолжить"), role: .cancel) {}
+            Button(L10n.t("Продолжить"), role: .cancel) {}
         }
         .onAppear {
             coordinator.start(preset: preset)

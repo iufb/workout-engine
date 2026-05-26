@@ -32,19 +32,17 @@ struct PresetSummaryCard: View {
     }
 
     private var metaLabel: String {
-        let phasePart = String(localized: "\(cyclePhases.count) фаз")
+        let phasePart = L10n.t("\(cyclePhases.count) фаз")
         guard roundCount > 1 else { return phasePart }
-        return phasePart + String(localized: " · ") + RoundsFormatting.label(count: roundCount)
+        return phasePart + L10n.t(" · ") + RoundsFormatting.label(count: roundCount)
     }
 
     private var accessibilityLabel: String {
         let duration = TimeFormatting.durationLabel(totalDuration)
         if roundCount > 1 {
-            return String(
-                localized: "Итого \(duration), \(cyclePhases.count) фаз в круге, \(roundCount) кругов"
-            )
+            return L10n.t("Итого \(duration), \(cyclePhases.count) фаз в круге, \(roundCount) кругов")
         }
-        return String(localized: "Итого \(duration), \(cyclePhases.count) фаз")
+        return L10n.t("Итого \(duration), \(cyclePhases.count) фаз")
     }
 
     private var phaseTimeline: some View {
@@ -88,7 +86,7 @@ struct PresetSummaryCard: View {
 
 enum RoundsFormatting {
     static func label(count: Int) -> String {
-        String(localized: "\(count) кругов")
+        L10n.t("\(count) кругов")
     }
 }
 

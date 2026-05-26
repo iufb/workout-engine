@@ -23,7 +23,7 @@ struct WorkoutPhaseHeader: View {
             }
 
             if totalPhaseCount > 0 {
-                Text(String(localized: "Фаза \(currentPhaseNumber) / \(totalPhaseCount)"))
+                Text(L10n.t("Фаза \(currentPhaseNumber) / \(totalPhaseCount)"))
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.white.opacity(0.82))
             }

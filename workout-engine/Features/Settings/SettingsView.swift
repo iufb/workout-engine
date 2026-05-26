@@ -6,32 +6,32 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(String(localized: "Звук")) {
-                    Toggle(String(localized: "Звуковые сигналы"), isOn: $settings.soundsEnabled)
+                Section(L10n.t("Звук")) {
+                    Toggle(L10n.t("Звуковые сигналы"), isOn: $settings.soundsEnabled)
                     if settings.soundsEnabled {
-                        Toggle(String(localized: "Подготовка"), isOn: $settings.soundOnPrepare)
-                        Toggle(String(localized: "Работа"), isOn: $settings.soundOnWork)
-                        Toggle(String(localized: "Отдых"), isOn: $settings.soundOnRest)
-                        Toggle(String(localized: "Завершение"), isOn: $settings.soundOnFinish)
-                        Toggle(String(localized: "Отсчёт последних 3 секунд"), isOn: $settings.soundOnCountdown)
+                        Toggle(L10n.t("Подготовка"), isOn: $settings.soundOnPrepare)
+                        Toggle(L10n.t("Работа"), isOn: $settings.soundOnWork)
+                        Toggle(L10n.t("Отдых"), isOn: $settings.soundOnRest)
+                        Toggle(L10n.t("Завершение"), isOn: $settings.soundOnFinish)
+                        Toggle(L10n.t("Отсчёт последних 3 секунд"), isOn: $settings.soundOnCountdown)
                     }
                 }
 
-                Section(String(localized: "Тактильная отдача")) {
-                    Toggle(String(localized: "Вибрация"), isOn: $settings.hapticsEnabled)
+                Section(L10n.t("Тактильная отдача")) {
+                    Toggle(L10n.t("Вибрация"), isOn: $settings.hapticsEnabled)
                 }
 
-                Section(String(localized: "Экран")) {
-                    Toggle(String(localized: "Не гасить экран во время тренировки"), isOn: $settings.keepScreenOnDuringWorkout)
+                Section(L10n.t("Экран")) {
+                    Toggle(L10n.t("Не гасить экран во время тренировки"), isOn: $settings.keepScreenOnDuringWorkout)
                 }
 
                 Section {
-                    Text(String(localized: "Таймер продолжает работу в фоне за счёт аудиосессии и коротких сигналов на смену фаз."))
+                    Text(L10n.t("Таймер продолжает работу в фоне за счёт аудиосессии и коротких сигналов на смену фаз."))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle(String(localized: "Настройки"))
+            .navigationTitle(L10n.t("Настройки"))
         }
     }
 }

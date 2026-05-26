@@ -9,7 +9,7 @@ struct WorkoutQuickStartCard: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     if showsLastUsedBadge {
-                        Text(String(localized: "Последняя тренировка"))
+                        Text(L10n.t("Последняя тренировка"))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .textCase(.uppercase)
@@ -33,7 +33,7 @@ struct WorkoutQuickStartCard: View {
                 roundCount: preset.roundCount
             )
 
-            Text(String(localized: "Начать"))
+            Text(L10n.t("Начать"))
                 .font(.headline)
                 .foregroundStyle(.tint)
         }
@@ -42,14 +42,12 @@ struct WorkoutQuickStartCard: View {
         .workoutCard()
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
-        .accessibilityHint(String(localized: "Двойной тап для запуска тренировки"))
+        .accessibilityHint(L10n.t("Двойной тап для запуска тренировки"))
     }
 
     private var accessibilityLabel: String {
-        let badge = showsLastUsedBadge ? String(localized: "Последняя тренировка, ") : ""
-        return badge + preset.name + ", " + String(
-            localized: "\(preset.phaseCount) фаз, \(TimeFormatting.durationLabel(preset.estimatedTotalDuration))"
-        )
+        let badge = showsLastUsedBadge ? L10n.t("Последняя тренировка, ") : ""
+        return badge + preset.name + ", " + L10n.t("\(preset.phaseCount) фаз, \(TimeFormatting.durationLabel(preset.estimatedTotalDuration))")
     }
 }
 

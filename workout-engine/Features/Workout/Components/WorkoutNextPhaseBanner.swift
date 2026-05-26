@@ -5,9 +5,7 @@ struct WorkoutNextPhaseBanner: View {
 
     var body: some View {
         Text(
-            String(
-                localized: "Далее: \(nextPhase.kind.displayName) · \(TimeFormatting.durationLabel(nextPhase.duration))"
-            )
+            L10n.t("Далее: \(nextPhase.kind.displayName) · \(TimeFormatting.durationLabel(nextPhase.duration))")
         )
         .font(.subheadline.weight(.medium))
         .foregroundStyle(.white.opacity(0.9))
@@ -15,9 +13,7 @@ struct WorkoutNextPhaseBanner: View {
         .padding(.vertical, 10)
         .background(.white.opacity(0.18), in: Capsule())
         .accessibilityLabel(
-            String(
-                localized: "Следующая фаза \(nextPhase.kind.displayName), \(TimeFormatting.durationLabel(nextPhase.duration))"
-            )
+            L10n.t("Следующая фаза \(nextPhase.kind.displayName), \(TimeFormatting.durationLabel(nextPhase.duration))")
         )
     }
 }

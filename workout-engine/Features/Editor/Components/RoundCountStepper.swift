@@ -19,7 +19,7 @@ struct RoundCountStepper: View {
             HStack(spacing: 8) {
                 glassStepButton(
                     systemName: "minus",
-                    label: String(localized: "Уменьшить"),
+                    label: L10n.t("Уменьшить"),
                     enabled: count > range.lowerBound
                 ) {
                     adjust(by: -1)
@@ -27,7 +27,7 @@ struct RoundCountStepper: View {
 
                 glassStepButton(
                     systemName: "plus",
-                    label: String(localized: "Увеличить"),
+                    label: L10n.t("Увеличить"),
                     enabled: count < range.upperBound
                 ) {
                     adjust(by: 1)
@@ -41,7 +41,7 @@ struct RoundCountStepper: View {
         HStack(spacing: 8) {
             materialStepButton(
                 systemName: "minus",
-                label: String(localized: "Уменьшить"),
+                label: L10n.t("Уменьшить"),
                 enabled: count > range.lowerBound
             ) {
                 adjust(by: -1)
@@ -49,7 +49,7 @@ struct RoundCountStepper: View {
 
             materialStepButton(
                 systemName: "plus",
-                label: String(localized: "Увеличить"),
+                label: L10n.t("Увеличить"),
                 enabled: count < range.upperBound
             ) {
                 adjust(by: 1)

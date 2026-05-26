@@ -3,9 +3,9 @@ import SwiftUI
 struct WorkoutEmptyPresetsHint: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(String(localized: "Пока нет своих интервалов"))
+            Text(L10n.t("Пока нет своих интервалов"))
                 .font(.headline)
-            Text(String(localized: "Создайте интервал во вкладке «Конструктор»"))
+            Text(L10n.t("Создайте интервал во вкладке «Конструктор»"))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }

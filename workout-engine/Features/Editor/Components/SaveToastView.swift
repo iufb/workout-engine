@@ -23,5 +23,5 @@ struct SaveToastView: View {
 }
 
 #Preview {
-    SaveToastView(message: String(localized: "Интервал сохранён"))
+    SaveToastView(message: L10n.t("Интервал сохранён"))
 }

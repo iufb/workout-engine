@@ -30,13 +30,9 @@ struct WorkoutPresetCard: View {
     private var accessibilityLabel: String {
         let duration = TimeFormatting.durationLabel(preset.estimatedTotalDuration)
         if preset.roundCount > 1 {
-            return String(
-                localized: "\(preset.name), \(preset.phaseCount) фаз, \(preset.roundCount) кругов, \(duration)"
-            )
+            return L10n.t("\(preset.name), \(preset.phaseCount) фаз, \(preset.roundCount) кругов, \(duration)")
         }
-        return String(
-            localized: "\(preset.name), \(preset.phaseCount) фаз, \(duration)"
-        )
+        return L10n.t("\(preset.name), \(preset.phaseCount) фаз, \(duration)")
     }
 }
 

@@ -16,11 +16,11 @@ enum TimeFormatting {
         let minutes = total / 60
         let seconds = total % 60
         if minutes > 0, seconds > 0 {
-            return String(localized: "\(minutes) мин \(seconds) с")
+            return L10n.t("\(minutes) мин \(seconds) с")
         }
         if minutes > 0 {
-            return String(localized: "\(minutes) мин")
+            return L10n.t("\(minutes) мин")
         }
-        return String(localized: "\(seconds) с")
+        return L10n.t("\(seconds) с")
     }
 }

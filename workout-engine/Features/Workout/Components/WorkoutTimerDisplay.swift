@@ -29,7 +29,7 @@ struct WorkoutTimerDisplay: View {
                 WorkoutEngineTick(engine: engine, date: date)
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(String(localized: "Осталось \(TimeFormatting.countdown(remaining))"))
+            .accessibilityLabel(L10n.t("Осталось \(TimeFormatting.countdown(remaining))"))
         }
     }
 }

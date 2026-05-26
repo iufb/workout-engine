@@ -7,9 +7,9 @@ enum PhaseKind: String, Codable, CaseIterable, Sendable {
 
     var displayName: String {
         switch self {
-        case .prepare: String(localized: "Подготовка")
-        case .work: String(localized: "Работа")
-        case .rest: String(localized: "Отдых")
+        case .prepare: L10n.t("Подготовка")
+        case .work: L10n.t("Работа")
+        case .rest: L10n.t("Отдых")
         }
     }
 }

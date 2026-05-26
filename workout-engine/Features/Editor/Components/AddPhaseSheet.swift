@@ -43,17 +43,17 @@ struct AddPhaseSheet: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(String(localized: "Добавить фазу: \(kind.displayName)"))
+                    .accessibilityLabel(L10n.t("Добавить фазу: \(kind.displayName)"))
                 }
 
                 Spacer()
             }
             .padding(EditorTheme.horizontalPadding)
-            .navigationTitle(String(localized: "Тип фазы"))
+            .navigationTitle(L10n.t("Тип фазы"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "Отмена")) {
+                    Button(L10n.t("Отмена")) {
                         dismiss()
                     }
                 }

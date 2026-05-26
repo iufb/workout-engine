@@ -48,21 +48,21 @@ struct HomeView: View {
                         }
                     }
                 } header: {
-                    Text(String(localized: "Мои интервалы"))
+                    Text(L10n.t("Мои интервалы"))
                 }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(WorkoutTheme.groupedBackground)
             .contentMargins(.horizontal, WorkoutTheme.horizontalPadding, for: .scrollContent)
-            .navigationTitle(String(localized: "Тренировка"))
+            .navigationTitle(L10n.t("Тренировка"))
             .navigationDestination(item: $selectedPreset) { preset in
                 ActiveWorkoutView(coordinator: coordinator, preset: preset)
             }
             .task { await reload() }
             .refreshable { await reload() }
-            .alert(String(localized: "Ошибка"), isPresented: .constant(loadError != nil)) {
-                Button(String(localized: "OK")) { loadError = nil }
+            .alert(L10n.t("Ошибка"), isPresented: .constant(loadError != nil)) {
+                Button(L10n.t("OK")) { loadError = nil }
             } message: {
                 Text(loadError ?? "")
             }
@@ -73,7 +73,7 @@ struct HomeView: View {
     @ViewBuilder
     private func quickStartRow(preset: WorkoutPreset) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(String(localized: "Быстрый старт"))
+            Text(L10n.t("Быстрый старт"))
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
@@ -110,7 +110,7 @@ struct HomeView: View {
             Button(role: .destructive) {
                 deletePreset(preset)
             } label: {
-                Label(String(localized: "Удалить"), systemImage: "trash")
+                Label(L10n.t("Удалить"), systemImage: "trash")
             }
         }
     }

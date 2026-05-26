@@ -6,17 +6,17 @@ struct RootTabView: View {
         TabView {
             HomeView()
                 .tabItem {
-                    Label(String(localized: "Тренировка"), systemImage: "figure.run")
+                    Label(L10n.t("Тренировка"), systemImage: "figure.run")
                 }
 
             PresetEditorView()
                 .tabItem {
-                    Label(String(localized: "Конструктор"), systemImage: "slider.horizontal.3")
+                    Label(L10n.t("Конструктор"), systemImage: "slider.horizontal.3")
                 }
 
             SettingsView()
                 .tabItem {
-                    Label(String(localized: "Настройки"), systemImage: "gearshape")
+                    Label(L10n.t("Настройки"), systemImage: "gearshape")
                 }
         }
     }

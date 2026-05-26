@@ -5,6 +5,19 @@ import Observation
 final class AppSettings {
     static let shared = AppSettings()
 
+    /// App content language from system locale: ru, or en (fallback).
+    var contentLocale: Locale {
+        AppLanguage.contentLocale(
+            forSystemLanguageCode: Locale.autoupdatingCurrent.language.languageCode?.identifier
+        )
+    }
+
+    var resolvedLocale: Locale { contentLocale }
+
+    var resolvedLanguageCode: String {
+        contentLocale.language.languageCode?.identifier ?? "en"
+    }
+
     var soundsEnabled: Bool {
         didSet { UserDefaults.standard.set(soundsEnabled, forKey: Keys.soundsEnabled) }
     }
@@ -61,6 +74,7 @@ final class AppSettings {
 
     private init() {
         let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "appLanguage")
         soundsEnabled = defaults.object(forKey: Keys.soundsEnabled) as? Bool ?? true
         hapticsEnabled = defaults.object(forKey: Keys.hapticsEnabled) as? Bool ?? true
         keepScreenOnDuringWorkout = defaults.object(forKey: Keys.keepScreenOn) as? Bool ?? true

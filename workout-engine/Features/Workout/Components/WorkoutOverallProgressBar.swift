@@ -22,8 +22,8 @@ struct WorkoutOverallProgressBar: View {
                 }
             }
             .frame(height: 5)
-            .accessibilityLabel(String(localized: "Прогресс тренировки"))
-            .accessibilityValue(Text("\(Int(progress * 100))%"))
+            .accessibilityLabel(L10n.t("Прогресс тренировки"))
+            .accessibilityValue(Text(L10n.t("\(Int(progress * 100))%")))
         }
     }
 }

@@ -127,7 +127,7 @@ struct PhaseListRow: View {
                 Button(role: .destructive) {
                     deletePhase(id: item.id)
                 } label: {
-                    Label(String(localized: "Удалить"), systemImage: "trash")
+                    Label(L10n.t("Удалить"), systemImage: "trash")
                 }
             }
         }
@@ -232,7 +232,7 @@ private struct PhaseRowFramesPreference: PreferenceKey {
                 )
             }
         } header: {
-            Text(String(localized: "Круг"))
+            Text(L10n.t("Круг"))
         }
     }
     .listStyle(.plain)

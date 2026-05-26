@@ -12,7 +12,7 @@ struct WorkoutFinishOverlay: View {
                     .foregroundStyle(.white)
                     .symbolEffect(.bounce)
 
-                Text(String(localized: "Готово"))
+                Text(L10n.t("Готово"))
                     .font(.title.weight(.bold))
                     .foregroundStyle(.white)
             }
@@ -20,7 +20,7 @@ struct WorkoutFinishOverlay: View {
         }
         .transition(.opacity)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "Тренировка завершена"))
+        .accessibilityLabel(L10n.t("Тренировка завершена"))
     }
 }
 

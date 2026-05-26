@@ -33,7 +33,7 @@ struct PhaseCardView: View {
                     .frame(width: 20)
                     .contentShape(Rectangle())
                     .highPriorityGesture(reorderGesture)
-                    .accessibilityLabel(String(localized: "Переместить"))
+                    .accessibilityLabel(L10n.t("Переместить"))
 
                 PhaseKindIcon(kind: phase.kind)
                     .accessibilityHidden(true)
@@ -50,7 +50,7 @@ struct PhaseCardView: View {
         .opacity(isDragging ? 0 : 1)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilitySummary)
-        .accessibilityHint(String(localized: "Свайп влево для удаления. Перетащите за ручку слева для смены порядка."))
+        .accessibilityHint(L10n.t("Свайп влево для удаления. Перетащите за ручку слева для смены порядка."))
     }
 
     private var reorderGesture: some Gesture {
@@ -60,9 +60,7 @@ struct PhaseCardView: View {
     }
 
     private var accessibilitySummary: String {
-        String(
-            localized: "\(phase.kind.displayName), \(phase.durationSeconds) секунд, фаза \(phaseIndex) из \(phaseCount)"
-        )
+        L10n.t("\(phase.kind.displayName), \(phase.durationSeconds) секунд, фаза \(phaseIndex) из \(phaseCount)")
     }
 }
 

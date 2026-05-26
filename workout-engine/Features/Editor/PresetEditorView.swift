@@ -21,7 +21,7 @@ struct PresetEditorView: View {
         NavigationStack {
             List {
                 Section {
-                    TextField(String(localized: "Название интервала"), text: $name)
+                    TextField(L10n.t("Название интервала"), text: $name)
                         .font(.title2.weight(.semibold))
                         .textFieldStyle(.plain)
                         .listRowInsets(EditorTheme.listRowInsets)
@@ -39,7 +39,7 @@ struct PresetEditorView: View {
                     .listRowBackground(Color.clear)
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(String(localized: "Количество кругов"))
+                        Text(L10n.t("Количество кругов"))
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .textCase(.uppercase)
@@ -66,7 +66,7 @@ struct PresetEditorView: View {
                         }
                     }
                 } header: {
-                    Text(String(localized: "Круг"))
+                    Text(L10n.t("Круг"))
                 }
 
                 Section {
@@ -83,7 +83,7 @@ struct PresetEditorView: View {
             .phaseListReorderSupport(phases: $phases, session: phaseReorderSession)
             .scrollDisabled(isPhaseReordering)
             .background(EditorTheme.groupedBackground)
-            .navigationTitle(String(localized: "Конструктор"))
+            .navigationTitle(L10n.t("Конструктор"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .safeAreaInset(edge: .bottom) {
@@ -127,14 +127,14 @@ struct PresetEditorView: View {
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(String(localized: "Количество кругов, \(roundCount)"))
+        .accessibilityLabel(L10n.t("Количество кругов, \(roundCount)"))
     }
 
     private var addPhaseButton: some View {
         Button {
             showAddPhaseSheet = true
         } label: {
-            Label(String(localized: "Добавить фазу"), systemImage: "plus")
+            Label(L10n.t("Добавить фазу"), systemImage: "plus")
                 .font(.headline)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
@@ -168,7 +168,7 @@ struct PresetEditorView: View {
             Button {
                 startNewPreset()
             } label: {
-                Label(String(localized: "Новый"), systemImage: "plus")
+                Label(L10n.t("Новый"), systemImage: "plus")
             }
         }
     }
@@ -178,14 +178,14 @@ struct PresetEditorView: View {
            let preset = savedPresets.first(where: { $0.id == id }) {
             return preset.name
         }
-        return name.isEmpty ? String(localized: "Новый интервал") : name
+        return name.isEmpty ? L10n.t("Новый интервал") : name
     }
 
     private var draftPreset: WorkoutPreset {
         WorkoutPreset(
             id: editingPresetID ?? UUID(),
             name: name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                ? String(localized: "Интервал")
+                ? L10n.t("Интервал")
                 : name,
             phases: phases,
             roundCount: roundCount,
@@ -199,13 +199,13 @@ struct PresetEditorView: View {
 
     private var validationHint: String? {
         if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return String(localized: "Введите название")
+            return L10n.t("Введите название")
         }
         if phases.isEmpty {
-            return String(localized: "Добавьте хотя бы одну фазу")
+            return L10n.t("Добавьте хотя бы одну фазу")
         }
         if phases.contains(where: { !DurationParsing.allowedRange(for: $0.kind).contains($0.durationSeconds) }) {
-            return String(localized: "Проверьте длительность фаз")
+            return L10n.t("Проверьте длительность фаз")
         }
         return nil
     }
@@ -265,8 +265,8 @@ struct PresetEditorView: View {
             roundCount = preset.roundCount
             savedPresets = try store.fetchAll()
             saveMessage = preset.isBuiltIn
-                ? String(localized: "Пресет Tabata обновлён")
-                : String(localized: "Интервал «\(preset.name)» сохранён")
+                ? L10n.t("Пресет Tabata обновлён")
+                : L10n.t("Интервал «\(preset.name)» сохранён")
             presentSaveToast()
             saveTrigger.toggle()
         } catch {

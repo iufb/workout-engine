@@ -43,7 +43,7 @@ struct WorkoutPreset: Identifiable, Codable, Equatable, Hashable, Sendable {
 
     static let tabata = WorkoutPreset(
         id: tabataID,
-        name: String(localized: "Tabata"),
+        name: L10n.t("Tabata"),
         phases: [
             PresetPhaseItem(kind: .work, durationSeconds: 20),
             PresetPhaseItem(kind: .rest, durationSeconds: 10),
@@ -54,7 +54,7 @@ struct WorkoutPreset: Identifiable, Codable, Equatable, Hashable, Sendable {
 
     static func defaultNew(name: String? = nil) -> WorkoutPreset {
         WorkoutPreset(
-            name: name ?? String(localized: "Мой интервал"),
+            name: name ?? L10n.t("Мой интервал"),
             phases: [
                 PresetPhaseItem(kind: .prepare, durationSeconds: 10),
                 PresetPhaseItem(kind: .work, durationSeconds: 20),

@@ -24,8 +24,8 @@ struct WorkoutPhaseProgressRing: View {
                 .animation(WorkoutTheme.progressAnimation, value: progress)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "Прогресс текущей фазы"))
-        .accessibilityValue(Text("\(Int(progress * 100))%"))
+        .accessibilityLabel(L10n.t("Прогресс текущей фазы"))
+        .accessibilityValue(Text(L10n.t("\(Int(progress * 100))%")))
     }
 }
 

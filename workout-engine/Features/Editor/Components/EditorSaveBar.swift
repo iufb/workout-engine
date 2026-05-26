@@ -17,13 +17,13 @@ struct EditorSaveBar: View {
             }
 
             if showsTabataReset {
-                Button(String(localized: "Сбросить Tabata к стандарту"), action: onResetTabata)
+                Button(L10n.t("Сбросить Tabata к стандарту"), action: onResetTabata)
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             Button(action: onSave) {
-                Text(String(localized: "Сохранить"))
+                Text(L10n.t("Сохранить"))
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 3)
@@ -47,7 +47,7 @@ struct EditorSaveBar: View {
 #Preview {
     EditorSaveBar(
         canSave: false,
-        validationHint: String(localized: "Введите название"),
+        validationHint: L10n.t("Введите название"),
         showsTabataReset: true,
         onSave: {},
         onResetTabata: {}

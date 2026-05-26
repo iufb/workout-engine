@@ -12,33 +12,33 @@ struct WorkoutControlsBar: View {
     var body: some View {
         VStack(spacing: 12) {
             if engine.status == .running {
-                Button(String(localized: "Пауза")) {
+                Button(L10n.t("Пауза")) {
                     engine.pause()
                 }
                 .buttonStyle(WorkoutPrimaryControlButtonStyle(phaseKind: accent))
-                .accessibilityLabel(String(localized: "Пауза"))
+                .accessibilityLabel(L10n.t("Пауза"))
             } else if engine.status == .paused {
-                Button(String(localized: "Продолжить")) {
+                Button(L10n.t("Продолжить")) {
                     engine.resume()
                 }
                 .buttonStyle(WorkoutPrimaryControlButtonStyle(phaseKind: accent))
-                .accessibilityLabel(String(localized: "Продолжить"))
+                .accessibilityLabel(L10n.t("Продолжить"))
             }
 
             HStack(spacing: 12) {
-                Button(String(localized: "Пропуск")) {
+                Button(L10n.t("Пропуск")) {
                     engine.skipPhase()
                 }
                 .buttonStyle(WorkoutSecondaryControlButtonStyle(phaseKind: accent))
                 .frame(maxWidth: .infinity)
-                .accessibilityLabel(String(localized: "Пропустить фазу"))
+                .accessibilityLabel(L10n.t("Пропустить фазу"))
 
-                Button(String(localized: "Стоп")) {
+                Button(L10n.t("Стоп")) {
                     onStop()
                 }
                 .buttonStyle(WorkoutSecondaryControlButtonStyle(phaseKind: accent, role: .destructive))
                 .frame(maxWidth: .infinity)
-                .accessibilityLabel(String(localized: "Остановить тренировку"))
+                .accessibilityLabel(L10n.t("Остановить тренировку"))
             }
         }
         .padding(16)

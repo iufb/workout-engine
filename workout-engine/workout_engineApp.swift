@@ -7,8 +7,15 @@ struct workout_engineApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
+            AppRootView()
         }
         .modelContainer(sharedModelContainer)
+    }
+}
+
+private struct AppRootView: View {
+    var body: some View {
+        RootTabView()
+            .environment(\.locale, AppSettings.shared.resolvedLocale)
     }
 }
