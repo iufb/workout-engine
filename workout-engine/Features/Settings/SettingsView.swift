@@ -6,6 +6,14 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section(L10n.t("Оформление")) {
+                    Picker(L10n.t("Тема"), selection: $settings.appearance) {
+                        ForEach(AppAppearance.allCases) { option in
+                            Text(option.displayName).tag(option)
+                        }
+                    }
+                }
+
                 Section(L10n.t("Звук")) {
                     Toggle(L10n.t("Звуковые сигналы"), isOn: $settings.soundsEnabled)
                     if settings.soundsEnabled {

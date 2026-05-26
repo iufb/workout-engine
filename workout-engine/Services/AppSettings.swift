@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SwiftUI
 
 @Observable
 final class AppSettings {
@@ -16,6 +17,17 @@ final class AppSettings {
 
     var resolvedLanguageCode: String {
         contentLocale.language.languageCode?.identifier ?? "en"
+    }
+
+    var appearance: AppAppearance {
+        didSet {
+            guard appearance != oldValue else { return }
+            UserDefaults.standard.set(appearance.rawValue, forKey: Keys.appearance)
+        }
+    }
+
+    var resolvedColorScheme: ColorScheme? {
+        appearance.resolvedColorScheme
     }
 
     var soundsEnabled: Bool {
@@ -61,6 +73,7 @@ final class AppSettings {
     }
 
     private enum Keys {
+        static let appearance = "appearance"
         static let soundsEnabled = "soundsEnabled"
         static let hapticsEnabled = "hapticsEnabled"
         static let keepScreenOn = "keepScreenOnDuringWorkout"
@@ -75,6 +88,12 @@ final class AppSettings {
     private init() {
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: "appLanguage")
+        if let raw = defaults.string(forKey: Keys.appearance),
+           let savedAppearance = AppAppearance(rawValue: raw) {
+            appearance = savedAppearance
+        } else {
+            appearance = .system
+        }
         soundsEnabled = defaults.object(forKey: Keys.soundsEnabled) as? Bool ?? true
         hapticsEnabled = defaults.object(forKey: Keys.hapticsEnabled) as? Bool ?? true
         keepScreenOnDuringWorkout = defaults.object(forKey: Keys.keepScreenOn) as? Bool ?? true

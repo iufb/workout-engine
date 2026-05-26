@@ -14,8 +14,12 @@ struct workout_engineApp: App {
 }
 
 private struct AppRootView: View {
+    @Bindable private var settings = AppSettings.shared
+
     var body: some View {
         RootTabView()
-            .environment(\.locale, AppSettings.shared.resolvedLocale)
+            .environment(\.locale, settings.resolvedLocale)
+            .preferredColorScheme(settings.resolvedColorScheme)
+            .tint(AppColors.accent)
     }
 }

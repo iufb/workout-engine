@@ -144,7 +144,7 @@ struct PresetEditorView: View {
         .background {
             RoundedRectangle(cornerRadius: EditorTheme.cardRadius, style: .continuous)
                 .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
-                .foregroundStyle(Color.accentColor.opacity(0.45))
+                .foregroundStyle(AppColors.accent.opacity(0.45))
         }
     }
 
