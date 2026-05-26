@@ -69,6 +69,7 @@ struct ActiveWorkoutView: View {
         }
         .animation(WorkoutTheme.phaseTransitionAnimation, value: engine.currentPhaseIndex)
         .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(L10n.t("Закрыть")) {
