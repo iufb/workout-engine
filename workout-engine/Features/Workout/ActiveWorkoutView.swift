@@ -2,35 +2,80 @@ import SwiftUI
 
 struct ActiveWorkoutView: View {
     @Bindable var coordinator: WorkoutSessionCoordinator
+    @Bindable private var engine: WorkoutEngine
     let preset: WorkoutPreset
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var showStopConfirmation = false
+    @State private var showFinishOverlay = false
 
-    private var engine: WorkoutEngine { coordinator.engine }
+    init(coordinator: WorkoutSessionCoordinator, preset: WorkoutPreset) {
+        self.coordinator = coordinator
+        self._engine = Bindable(wrappedValue: coordinator.engine)
+        self.preset = preset
+    }
+
+    private var nextPhase: PhaseStep? {
+        let nextIndex = engine.currentPhaseIndex + 1
+        guard engine.phases.indices.contains(nextIndex) else { return nil }
+        return engine.phases[nextIndex]
+    }
 
     var body: some View {
         ZStack {
-            backgroundColor
-                .ignoresSafeArea()
-                .animation(.easeInOut(duration: 0.35), value: engine.currentPhase?.kind)
+            backgroundLayer
 
-            VStack(spacing: 24) {
-                header
-                Spacer()
-                timerDisplay
-                Spacer()
-                controls
+            VStack(spacing: 0) {
+                WorkoutOverallProgressBar(engine: engine)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+
+                WorkoutPhaseHeader(
+                    presetName: preset.name,
+                    phaseKind: engine.currentPhase?.kind,
+                    currentPhaseNumber: engine.currentPhaseNumber,
+                    totalPhaseCount: engine.totalPhaseCount
+                )
+                .padding(.top, 16)
+                .padding(.horizontal, 20)
+
+                Spacer(minLength: 16)
+
+                WorkoutTimerDisplay(engine: engine)
+
+                Spacer(minLength: 12)
+
+                if let nextPhase, engine.status == .running || engine.status == .paused {
+                    WorkoutNextPhaseBanner(nextPhase: nextPhase)
+                        .padding(.horizontal, 24)
+                }
+
+                Spacer(minLength: 16)
+
+                WorkoutControlsBar(
+                    engine: engine,
+                    phaseKind: engine.currentPhase?.kind
+                ) {
+                    showStopConfirmation = true
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, WorkoutTheme.controlsBottomPadding)
             }
-            .padding()
+
+            if showFinishOverlay {
+                WorkoutFinishOverlay()
+            }
         }
+        .animation(WorkoutTheme.phaseTransitionAnimation, value: engine.currentPhaseIndex)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(String(localized: "Закрыть")) {
                     showStopConfirmation = true
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(toolbarForeground)
+                .fontWeight(.semibold)
             }
         }
         .confirmationDialog(
@@ -52,9 +97,6 @@ struct ActiveWorkoutView: View {
                 coordinator.stop()
             }
         }
-        .overlay {
-            WorkoutTickDriver(engine: engine)
-        }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 engine.resync()
@@ -62,111 +104,45 @@ struct ActiveWorkoutView: View {
         }
         .onChange(of: engine.status) { _, status in
             if status == .finished {
-                dismiss()
+                presentFinishAndDismiss()
             }
         }
         .statusBarHidden(true)
         .persistentSystemOverlays(.hidden)
     }
 
-    private var backgroundColor: Color {
+    private var toolbarForeground: Color {
         if let kind = engine.currentPhase?.kind {
-            return PhaseColors.background(for: kind)
+            return PhaseColors.onPhaseBackground(for: kind)
         }
-        return Color.black
+        return .white
     }
 
-    private var header: some View {
-        VStack(spacing: 8) {
-            Text(preset.name)
-                .font(.headline)
-                .foregroundStyle(.white.opacity(0.9))
-
-            if engine.totalPhaseCount > 0 {
-                Text(String(localized: "Фаза \(engine.currentPhaseNumber) / \(engine.totalPhaseCount)"))
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
+    private var backgroundLayer: some View {
+        ZStack {
+            if let kind = engine.currentPhase?.kind {
+                PhaseColors.background(for: kind)
+            } else {
+                Color.black
             }
 
-            if let phase = engine.currentPhase {
-                Text(phase.kind.displayName)
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .accessibilityLabel(phase.kind.displayName)
-            }
+            LinearGradient(
+                colors: [.white.opacity(0.08), .clear],
+                startPoint: .top,
+                endPoint: .center
+            )
         }
+        .ignoresSafeArea()
     }
 
-    private var timerDisplay: some View {
-        Text(TimeFormatting.countdown(engine.remaining))
-            .font(.system(size: 96, weight: .bold, design: .rounded))
-            .monospacedDigit()
-            .foregroundStyle(.white)
-            .contentTransition(.numericText())
-            .accessibilityLabel(String(localized: "Осталось \(TimeFormatting.countdown(engine.remaining))"))
-    }
-
-    private var controls: some View {
-        HStack(spacing: 16) {
-            if engine.status == .running {
-                Button(String(localized: "Пауза")) {
-                    engine.pause()
-                }
-                .buttonStyle(WorkoutControlButtonStyle())
-            } else if engine.status == .paused {
-                Button(String(localized: "Продолжить")) {
-                    engine.resume()
-                }
-                .buttonStyle(WorkoutControlButtonStyle())
-            }
-
-            Button(String(localized: "Пропуск")) {
-                engine.skipPhase()
-            }
-            .buttonStyle(WorkoutControlButtonStyle())
-
-            Button(String(localized: "Стоп")) {
-                showStopConfirmation = true
-            }
-            .buttonStyle(WorkoutControlButtonStyle(role: .destructive))
+    private func presentFinishAndDismiss() {
+        withAnimation(.smooth) {
+            showFinishOverlay = true
         }
-    }
-}
-
-private struct WorkoutControlButtonStyle: ButtonStyle {
-    enum Role { case normal, destructive }
-    var role: Role = .normal
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.headline)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(role == .destructive ? Color.red.opacity(0.85) : Color.white.opacity(0.22))
-            .foregroundStyle(.white)
-            .clipShape(Capsule())
-            .opacity(configuration.isPressed ? 0.7 : 1)
-    }
-}
-
-/// Drives `engine.tick()` on a periodic timeline (UI refresh only; timing uses `phaseEndsAt`).
-private struct WorkoutTickDriver: View {
-    let engine: WorkoutEngine
-
-    var body: some View {
-        TimelineView(.periodic(from: .now, by: 0.1)) { _ in
-            TickSideEffect(action: { engine.tick() })
+        Task {
+            try? await Task.sleep(for: WorkoutTheme.finishOverlayDuration)
+            dismiss()
         }
-        .allowsHitTesting(false)
-    }
-}
-
-private struct TickSideEffect: View {
-    let action: () -> Void
-
-    var body: some View {
-        let _ = action()
-        Color.clear.frame(width: 0, height: 0)
     }
 }
 

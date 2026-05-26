@@ -12,6 +12,7 @@ final class WorkoutSessionCoordinator: WorkoutFeedbackHandling {
     }
 
     func start(preset: WorkoutPreset) {
+        AppSettings.shared.lastUsedPresetID = preset.id
         do {
             try AudioSessionManager.shared.activateForWorkout()
         } catch {
@@ -32,8 +33,16 @@ final class WorkoutSessionCoordinator: WorkoutFeedbackHandling {
     nonisolated func workoutEngine(_ engine: WorkoutEngine, didEnterPhase step: PhaseStep, at index: Int) {
         Task { @MainActor in
             guard engine.status == .running else { return }
-            SoundPlayer.shared.playPhaseTransition(to: step.kind)
+            SoundPlayer.shared.playPhaseStartLoud(for: step.kind)
             HapticService.shared.phaseTransition(for: step.kind)
+        }
+    }
+
+    nonisolated func workoutEngine(_ engine: WorkoutEngine, countdownSecond second: Int, for phase: PhaseStep) {
+        Task { @MainActor in
+            guard engine.status == .running else { return }
+            SoundPlayer.shared.playCountdownSoft(for: phase.kind)
+            HapticService.shared.countdownTick()
         }
     }
 

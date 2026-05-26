@@ -13,6 +13,7 @@ struct SettingsView: View {
                         Toggle(String(localized: "Работа"), isOn: $settings.soundOnWork)
                         Toggle(String(localized: "Отдых"), isOn: $settings.soundOnRest)
                         Toggle(String(localized: "Завершение"), isOn: $settings.soundOnFinish)
+                        Toggle(String(localized: "Отсчёт последних 3 секунд"), isOn: $settings.soundOnCountdown)
                     }
                 }
 

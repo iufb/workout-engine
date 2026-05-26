@@ -14,33 +14,48 @@ struct PresetEditorView: View {
     @State private var saveTrigger = false
     @State private var isPhaseReordering = false
 
+    private var listRowInsets: EdgeInsets {
+        EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0)
+    }
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: EditorTheme.sectionSpacing) {
+            List {
+                Section {
                     TextField(String(localized: "Название интервала"), text: $name)
                         .font(.title2.weight(.semibold))
                         .textFieldStyle(.plain)
                         .padding(.vertical, 4)
+                        .listRowInsets(listRowInsets)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
 
                     PresetSummaryCard(
                         totalDuration: draftPreset.estimatedTotalDuration,
                         phases: phases
                     )
                     .editorCard()
-
-                    PhaseListEditor(
-                        phases: $phases,
-                        showAddPhaseSheet: $showAddPhaseSheet,
-                        isReordering: $isPhaseReordering
-                    )
+                    .listRowInsets(listRowInsets)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
-                .padding(.horizontal, EditorTheme.horizontalPadding)
-                .padding(.top, 8)
-                .padding(.bottom, EditorTheme.scrollBottomPadding)
+
+                Section {
+                    PhaseListEditor(phases: $phases, isReordering: $isPhaseReordering)
+                }
+
+                Section {
+                    addPhaseButton
+                        .listRowInsets(listRowInsets)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                }
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .scrollDisabled(isPhaseReordering)
             .background(EditorTheme.groupedBackground)
+            .contentMargins(.horizontal, EditorTheme.horizontalPadding, for: .scrollContent)
             .navigationTitle(String(localized: "Конструктор"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
@@ -68,6 +83,24 @@ struct PresetEditorView: View {
             }
             .task { await loadPresets() }
             .sensoryFeedback(.success, trigger: saveTrigger)
+        }
+    }
+
+    private var addPhaseButton: some View {
+        Button {
+            showAddPhaseSheet = true
+        } label: {
+            Label(String(localized: "Добавить фазу"), systemImage: "plus")
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.tint)
+        .background {
+            RoundedRectangle(cornerRadius: EditorTheme.cardRadius, style: .continuous)
+                .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                .foregroundStyle(Color.accentColor.opacity(0.45))
         }
     }
 

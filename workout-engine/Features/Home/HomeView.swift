@@ -7,37 +7,54 @@ struct HomeView: View {
     @State private var loadError: String?
     @State private var selectedPreset: WorkoutPreset?
     @State private var coordinator = WorkoutSessionCoordinator()
+    @State private var startHapticTrigger = false
+
+    private var customPresets: [WorkoutPreset] {
+        presets.filter { !$0.isBuiltIn }
+    }
+
+    private var quickStartPreset: WorkoutPreset? {
+        QuickStartResolver.resolve(
+            presets: presets,
+            lastUsedID: AppSettings.shared.lastUsedPresetID
+        )
+    }
+
+    private var listRowInsets: EdgeInsets {
+        EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0)
+    }
 
     var body: some View {
         NavigationStack {
             List {
-                if let tabata = presets.first(where: { $0.isBuiltIn }) {
-                    Section(String(localized: "Быстрый старт")) {
-                        Button {
-                            selectedPreset = tabata
-                        } label: {
-                            QuickStartCard(preset: tabata)
-                        }
-                        .buttonStyle(.plain)
+                if let quickStartPreset {
+                    Section {
+                        quickStartRow(preset: quickStartPreset)
+                            .listRowInsets(listRowInsets)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                     }
                 }
 
-                Section(String(localized: "Мои интервалы")) {
-                    if presets.filter({ !$0.isBuiltIn }).isEmpty {
-                        Text(String(localized: "Создайте интервал во вкладке «Конструктор»"))
-                            .foregroundStyle(.secondary)
+                Section {
+                    if customPresets.isEmpty {
+                        WorkoutEmptyPresetsHint()
+                            .listRowInsets(listRowInsets)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                     } else {
-                        ForEach(presets.filter { !$0.isBuiltIn }) { preset in
-                            Button {
-                                selectedPreset = preset
-                            } label: {
-                                PresetRow(preset: preset)
-                            }
+                        ForEach(customPresets) { preset in
+                            presetRow(preset: preset)
                         }
-                        .onDelete(perform: deleteCustomPresets)
                     }
+                } header: {
+                    Text(String(localized: "Мои интервалы"))
                 }
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(WorkoutTheme.groupedBackground)
+            .contentMargins(.horizontal, WorkoutTheme.horizontalPadding, for: .scrollContent)
             .navigationTitle(String(localized: "Тренировка"))
             .navigationDestination(item: $selectedPreset) { preset in
                 ActiveWorkoutView(coordinator: coordinator, preset: preset)
@@ -48,6 +65,52 @@ struct HomeView: View {
                 Button(String(localized: "OK")) { loadError = nil }
             } message: {
                 Text(loadError ?? "")
+            }
+            .sensoryFeedback(.selection, trigger: startHapticTrigger)
+        }
+    }
+
+    @ViewBuilder
+    private func quickStartRow(preset: WorkoutPreset) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Быстрый старт"))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+
+            Button {
+                startHapticTrigger.toggle()
+                selectedPreset = preset
+            } label: {
+                WorkoutQuickStartCard(
+                    preset: preset,
+                    showsLastUsedBadge: QuickStartResolver.isLastUsed(
+                        preset: preset,
+                        lastUsedID: AppSettings.shared.lastUsedPresetID
+                    )
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    @ViewBuilder
+    private func presetRow(preset: WorkoutPreset) -> some View {
+        Button {
+            startHapticTrigger.toggle()
+            selectedPreset = preset
+        } label: {
+            WorkoutPresetCard(preset: preset)
+        }
+        .buttonStyle(.plain)
+        .listRowInsets(listRowInsets)
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                deletePreset(preset)
+            } label: {
+                Label(String(localized: "Удалить"), systemImage: "trash")
             }
         }
     }
@@ -62,60 +125,15 @@ struct HomeView: View {
         }
     }
 
-    private func deleteCustomPresets(at offsets: IndexSet) {
-        let custom = presets.filter { !$0.isBuiltIn }
-        let store = PresetStore(modelContext: modelContext)
-        for index in offsets {
-            let preset = custom[index]
+    private func deletePreset(_ preset: WorkoutPreset) {
+        withAnimation(.snappy) {
+            let store = PresetStore(modelContext: modelContext)
             try? store.delete(preset)
+            if AppSettings.shared.lastUsedPresetID == preset.id {
+                AppSettings.shared.lastUsedPresetID = nil
+            }
+            presets.removeAll { $0.id == preset.id }
         }
-        Task { await reload() }
-    }
-}
-
-private struct QuickStartCard: View {
-    let preset: WorkoutPreset
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(preset.name)
-                .font(.title2.bold())
-            Text(intervalSummary)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text(String(localized: "Старт →"))
-                .font(.headline)
-                .foregroundStyle(.tint)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Color.accentColor.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private var intervalSummary: String {
-        String(
-            localized: "\(preset.phaseCount) фаз · ~\(TimeFormatting.durationLabel(preset.estimatedTotalDuration))"
-        )
-    }
-}
-
-private struct PresetRow: View {
-    let preset: WorkoutPreset
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(preset.name)
-                .font(.headline)
-            Text(
-                String(
-                    localized: "\(preset.phaseCount) фаз · ~\(TimeFormatting.durationLabel(preset.estimatedTotalDuration))"
-                )
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-        .padding(.vertical, 4)
     }
 }
 

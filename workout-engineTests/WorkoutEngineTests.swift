@@ -86,4 +86,56 @@ final class WorkoutEngineTests: XCTestCase {
         XCTAssertEqual(engine.currentPhaseNumber, 1)
         XCTAssertEqual(engine.totalPhaseCount, 3)
     }
+
+    func testRemainingAtDecreasesOverTime() {
+        let engine = WorkoutEngine()
+        engine.load(
+            preset: WorkoutPreset(
+                name: "T",
+                phases: [PresetPhaseItem(kind: .work, durationSeconds: 30)]
+            )
+        )
+        engine.start()
+
+        let start = Date()
+        let initial = engine.remaining(at: start)
+        let later = engine.remaining(at: start.addingTimeInterval(5))
+
+        XCTAssertEqual(initial, 30, accuracy: 0.5)
+        XCTAssertEqual(later, 25, accuracy: 0.5)
+        XCTAssertLessThan(later, initial)
+    }
+
+    func testProgressAtIncreasesDuringPhase() {
+        let engine = WorkoutEngine()
+        engine.load(
+            preset: WorkoutPreset(
+                name: "T",
+                phases: [PresetPhaseItem(kind: .work, durationSeconds: 10)]
+            )
+        )
+        engine.start()
+
+        let start = Date()
+        let early = engine.progress(at: start)
+        let later = engine.progress(at: start.addingTimeInterval(5))
+
+        XCTAssertLessThan(early, later)
+        XCTAssertLessThanOrEqual(later, 1)
+    }
+
+    func testCurrentPhaseProgressAt() {
+        let engine = WorkoutEngine()
+        engine.load(
+            preset: WorkoutPreset(
+                name: "T",
+                phases: [PresetPhaseItem(kind: .work, durationSeconds: 20)]
+            )
+        )
+        engine.start()
+
+        let start = Date()
+        XCTAssertEqual(engine.currentPhaseProgress(at: start), 0, accuracy: 0.01)
+        XCTAssertEqual(engine.currentPhaseProgress(at: start.addingTimeInterval(10)), 0.5, accuracy: 0.05)
+    }
 }

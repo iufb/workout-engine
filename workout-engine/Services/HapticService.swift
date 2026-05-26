@@ -15,6 +15,11 @@ final class HapticService {
         notification.prepare()
     }
 
+    func countdownTick() {
+        guard AppSettings.shared.hapticsEnabled else { return }
+        light.impactOccurred()
+    }
+
     func phaseTransition(for kind: PhaseKind) {
         guard AppSettings.shared.hapticsEnabled else { return }
         switch kind {

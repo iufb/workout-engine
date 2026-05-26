@@ -1,8 +1,8 @@
 import SwiftUI
 
+/// Phase rows for the editor `List` (swipe-to-delete + custom drag reorder).
 struct PhaseListEditor: View {
     @Binding var phases: [PresetPhaseItem]
-    @Binding var showAddPhaseSheet: Bool
     @Binding var isReordering: Bool
 
     @State private var draggingID: UUID?
@@ -12,31 +12,15 @@ struct PhaseListEditor: View {
     @State private var rowFrames: [UUID: CGRect] = [:]
     @State private var reorderHapticTrigger = false
 
-    init(
-        phases: Binding<[PresetPhaseItem]>,
-        showAddPhaseSheet: Binding<Bool>,
-        isReordering: Binding<Bool> = .constant(false)
-    ) {
-        _phases = phases
-        _showAddPhaseSheet = showAddPhaseSheet
-        _isReordering = isReordering
+    private var listRowInsets: EdgeInsets {
+        EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0)
     }
 
     var body: some View {
-        VStack(spacing: EditorTheme.sectionSpacing) {
+        Group {
             ForEach($phases) { $phase in
                 phaseRow(phase: $phase)
-                    .frame(maxHeight: draggingID == phase.id ? 0 : nil, alignment: .top)
-                    .clipped()
-                    .anchorPreference(
-                        key: PhaseRowBoundsPreference.self,
-                        value: .bounds
-                    ) { anchor in
-                        [phase.id: anchor]
-                    }
             }
-
-            addPhaseButton
         }
         .coordinateSpace(name: EditorTheme.phaseReorderCoordinateSpace)
         .backgroundPreferenceValue(PhaseRowBoundsPreference.self) { anchors in
@@ -61,22 +45,29 @@ struct PhaseListEditor: View {
     @ViewBuilder
     private func phaseRow(phase: Binding<PresetPhaseItem>) -> some View {
         let item = phase.wrappedValue
+        let canSwipeDelete = phases.count > 1 && draggingID == nil
 
-        SwipeDeleteRow(
-            canDelete: phases.count > 1 && draggingID == nil,
-            onDelete: { deletePhase(id: item.id) }
-        ) {
-            PhaseCardView(
-                phase: phase,
-                phaseIndex: phaseIndex(for: item.id),
-                phaseCount: phases.count,
-                isDragging: draggingID == item.id,
-                onDragChanged: { value in
-                    handleDragChanged(for: item, value: value)
-                },
-                onDragEnded: endDrag
-            )
+        PhaseCardView(
+            phase: phase,
+            phaseIndex: phaseIndex(for: item.id),
+            phaseCount: phases.count,
+            isDragging: draggingID == item.id,
+            onDragChanged: { value in
+                handleDragChanged(for: item, value: value)
+            },
+            onDragEnded: endDrag
+        )
+        .frame(maxHeight: draggingID == item.id ? 0 : nil, alignment: .top)
+        .clipped()
+        .listRowInsets(listRowInsets)
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
+        .anchorPreference(key: PhaseRowBoundsPreference.self, value: .bounds) { anchor in
+            [item.id: anchor]
         }
+        .modifier(PhaseSwipeDeleteModifier(canDelete: canSwipeDelete) {
+            deletePhase(id: item.id)
+        })
     }
 
     @ViewBuilder
@@ -97,24 +88,6 @@ struct PhaseListEditor: View {
                     .allowsHitTesting(false)
                     .transition(.identity)
             }
-        }
-    }
-
-    private var addPhaseButton: some View {
-        Button {
-            showAddPhaseSheet = true
-        } label: {
-            Label(String(localized: "Добавить фазу"), systemImage: "plus")
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(.tint)
-        .background {
-            RoundedRectangle(cornerRadius: EditorTheme.cardRadius, style: .continuous)
-                .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
-                .foregroundStyle(Color.accentColor.opacity(0.45))
         }
     }
 
@@ -169,6 +142,23 @@ struct PhaseListEditor: View {
     }
 }
 
+private struct PhaseSwipeDeleteModifier: ViewModifier {
+    let canDelete: Bool
+    let onDelete: () -> Void
+
+    func body(content: Content) -> some View {
+        if canDelete {
+            content.swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                Button(role: .destructive, action: onDelete) {
+                    Label(String(localized: "Удалить"), systemImage: "trash")
+                }
+            }
+        } else {
+            content
+        }
+    }
+}
+
 private struct PhaseRowBoundsPreference: PreferenceKey {
     static var defaultValue: [UUID: Anchor<CGRect>] = [:]
 
@@ -187,15 +177,10 @@ private struct PhaseRowFramesPreference: PreferenceKey {
 
 #Preview {
     @Previewable @State var phases = WorkoutPreset.defaultNew().phases
-    @Previewable @State var showSheet = false
     @Previewable @State var isReordering = false
-    ScrollView {
-        PhaseListEditor(
-            phases: $phases,
-            showAddPhaseSheet: $showSheet,
-            isReordering: $isReordering
-        )
-        .padding(.horizontal, 20)
+    List {
+        PhaseListEditor(phases: $phases, isReordering: $isReordering)
     }
+    .listStyle(.plain)
     .scrollDisabled(isReordering)
 }

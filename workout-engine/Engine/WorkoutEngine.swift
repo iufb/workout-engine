@@ -10,10 +10,12 @@ enum WorkoutEngineStatus: Equatable, Sendable {
 
 protocol WorkoutFeedbackHandling: AnyObject {
     func workoutEngine(_ engine: WorkoutEngine, didEnterPhase step: PhaseStep, at index: Int)
+    func workoutEngine(_ engine: WorkoutEngine, countdownSecond second: Int, for phase: PhaseStep)
     func workoutEngineDidFinish(_ engine: WorkoutEngine)
     func workoutEngineDidStop(_ engine: WorkoutEngine)
 }
 
+@MainActor
 @Observable
 final class WorkoutEngine {
     private(set) var status: WorkoutEngineStatus = .idle
@@ -22,6 +24,7 @@ final class WorkoutEngine {
     private(set) var currentPhaseIndex: Int = 0
     private(set) var phaseEndsAt: Date?
     private(set) var pausedRemaining: TimeInterval?
+    private var lastCountdownSecondAnnounced: Int?
 
     weak var feedbackHandler: WorkoutFeedbackHandling?
 
@@ -31,10 +34,14 @@ final class WorkoutEngine {
     }
 
     var remaining: TimeInterval {
+        remaining(at: .now)
+    }
+
+    func remaining(at date: Date) -> TimeInterval {
         switch status {
         case .running:
             guard let phaseEndsAt else { return 0 }
-            return max(0, phaseEndsAt.timeIntervalSinceNow)
+            return max(0, phaseEndsAt.timeIntervalSince(date))
         case .paused:
             return pausedRemaining ?? 0
         default:
@@ -52,15 +59,26 @@ final class WorkoutEngine {
     }
 
     var progress: Double {
+        progress(at: .now)
+    }
+
+    func progress(at date: Date) -> Double {
         guard !phases.isEmpty else { return 0 }
         let completed = Double(currentPhaseIndex)
         let phaseProgress: Double
         if let step = currentPhase, step.duration > 0 {
-            phaseProgress = 1 - (remaining / step.duration)
+            phaseProgress = 1 - (remaining(at: date) / step.duration)
         } else {
             phaseProgress = 0
         }
         return min(1, (completed + phaseProgress) / Double(phases.count))
+    }
+
+    /// Progress through the current phase only (0...1).
+    func currentPhaseProgress(at date: Date) -> Double {
+        guard let step = currentPhase, step.duration > 0 else { return 0 }
+        let elapsed = step.duration - remaining(at: date)
+        return min(1, max(0, elapsed / step.duration))
     }
 
     func load(preset: WorkoutPreset) {
@@ -81,9 +99,10 @@ final class WorkoutEngine {
 
     func pause() {
         guard status == .running else { return }
-        pausedRemaining = remaining
+        pausedRemaining = remaining(at: .now)
         phaseEndsAt = nil
         status = .paused
+        resetCountdownAnnouncement()
     }
 
     func resume() {
@@ -91,6 +110,7 @@ final class WorkoutEngine {
         status = .running
         phaseEndsAt = Date().addingTimeInterval(pausedRemaining)
         self.pausedRemaining = nil
+        resetCountdownAnnouncement()
     }
 
     func skipPhase() {
@@ -108,6 +128,7 @@ final class WorkoutEngine {
         phaseEndsAt = nil
         pausedRemaining = nil
         currentPhaseIndex = 0
+        resetCountdownAnnouncement()
         if wasActive {
             feedbackHandler?.workoutEngineDidStop(self)
         }
@@ -116,6 +137,10 @@ final class WorkoutEngine {
     /// Call on UI tick or when returning to foreground.
     func tick(now: Date = .now) {
         guard status == .running, let phaseEndsAt else { return }
+
+        let remaining = max(0, phaseEndsAt.timeIntervalSince(now))
+        announceCountdownIfNeeded(remaining: remaining)
+
         if now >= phaseEndsAt {
             advancePhase()
         }
@@ -130,10 +155,27 @@ final class WorkoutEngine {
             finish()
             return
         }
+        resetCountdownAnnouncement()
         phaseEndsAt = Date().addingTimeInterval(step.duration)
         if notify {
             feedbackHandler?.workoutEngine(self, didEnterPhase: step, at: currentPhaseIndex)
         }
+    }
+
+    private func announceCountdownIfNeeded(remaining: TimeInterval) {
+        guard remaining > 0, let step = currentPhase else { return }
+        let second = Int(ceil(remaining))
+        guard (1 ... 3).contains(second) else {
+            resetCountdownAnnouncement()
+            return
+        }
+        guard lastCountdownSecondAnnounced != second else { return }
+        lastCountdownSecondAnnounced = second
+        feedbackHandler?.workoutEngine(self, countdownSecond: second, for: step)
+    }
+
+    private func resetCountdownAnnouncement() {
+        lastCountdownSecondAnnounced = nil
     }
 
     private func advancePhase() {
@@ -151,6 +193,7 @@ final class WorkoutEngine {
         status = .finished
         phaseEndsAt = nil
         pausedRemaining = nil
+        resetCountdownAnnouncement()
         feedbackHandler?.workoutEngineDidFinish(self)
     }
 }

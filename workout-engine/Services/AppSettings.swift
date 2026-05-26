@@ -33,6 +33,20 @@ final class AppSettings {
         didSet { UserDefaults.standard.set(soundOnFinish, forKey: Keys.soundOnFinish) }
     }
 
+    var soundOnCountdown: Bool {
+        didSet { UserDefaults.standard.set(soundOnCountdown, forKey: Keys.soundOnCountdown) }
+    }
+
+    var lastUsedPresetID: UUID? {
+        didSet {
+            if let lastUsedPresetID {
+                UserDefaults.standard.set(lastUsedPresetID.uuidString, forKey: Keys.lastUsedPresetID)
+            } else {
+                UserDefaults.standard.removeObject(forKey: Keys.lastUsedPresetID)
+            }
+        }
+    }
+
     private enum Keys {
         static let soundsEnabled = "soundsEnabled"
         static let hapticsEnabled = "hapticsEnabled"
@@ -41,6 +55,8 @@ final class AppSettings {
         static let soundOnWork = "soundOnWork"
         static let soundOnRest = "soundOnRest"
         static let soundOnFinish = "soundOnFinish"
+        static let soundOnCountdown = "soundOnCountdown"
+        static let lastUsedPresetID = "lastUsedPresetID"
     }
 
     private init() {
@@ -52,6 +68,12 @@ final class AppSettings {
         soundOnWork = defaults.object(forKey: Keys.soundOnWork) as? Bool ?? true
         soundOnRest = defaults.object(forKey: Keys.soundOnRest) as? Bool ?? true
         soundOnFinish = defaults.object(forKey: Keys.soundOnFinish) as? Bool ?? true
+        soundOnCountdown = defaults.object(forKey: Keys.soundOnCountdown) as? Bool ?? true
+        if let idString = defaults.string(forKey: Keys.lastUsedPresetID) {
+            lastUsedPresetID = UUID(uuidString: idString)
+        } else {
+            lastUsedPresetID = nil
+        }
     }
 
     func shouldPlaySound(for kind: PhaseKind?) -> Bool {
