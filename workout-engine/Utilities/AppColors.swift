@@ -5,4 +5,6 @@ enum AppColors {
     static var accent: Color {
         Color.accentColor
     }
+
+    static let destructive = Color.red
 }

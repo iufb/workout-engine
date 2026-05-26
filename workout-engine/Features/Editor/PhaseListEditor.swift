@@ -132,6 +132,7 @@ struct PhaseListRow: View {
                 } label: {
                     Label(L10n.t("Удалить"), systemImage: "trash")
                 }
+                .tint(AppColors.destructive)
             }
         }
     }
