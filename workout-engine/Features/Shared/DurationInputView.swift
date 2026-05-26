@@ -3,9 +3,14 @@ import SwiftUI
 struct DurationInputView: View {
     let kind: PhaseKind
     @Binding var seconds: Int
+    var editorFocus: FocusState<EditorFocusField?>.Binding
+    let editorFocusCase: EditorFocusField
     @State private var text: String = ""
     @State private var hasParseError = false
-    @FocusState private var isFocused: Bool
+
+    private var isFieldFocused: Bool {
+        editorFocus.wrappedValue == editorFocusCase
+    }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -29,11 +34,11 @@ struct DurationInputView: View {
                     RoundedRectangle(cornerRadius: EditorTheme.pillRadius, style: .continuous)
                         .strokeBorder(hasParseError ? Color.red : EditorTheme.cardStroke, lineWidth: hasParseError ? 1.5 : 0.5)
                 }
-                .focused($isFocused)
+                .focused(editorFocus, equals: editorFocusCase)
                 .foregroundStyle(hasParseError ? .red : .primary)
                 .onSubmit { commitText() }
-                .onChange(of: isFocused) { _, focused in
-                    if !focused { commitText() }
+                .onChange(of: editorFocus.wrappedValue) { _, newValue in
+                    if newValue != editorFocusCase { commitText() }
                 }
                 .accessibilityLabel(L10n.t("Длительность"))
 
@@ -43,12 +48,15 @@ struct DurationInputView: View {
         }
         .onAppear { syncTextFromSeconds() }
         .onChange(of: seconds) { _, _ in
-            if !isFocused { syncTextFromSeconds() }
+            if !isFieldFocused { syncTextFromSeconds() }
         }
     }
 
     private func stepperButton(systemName: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button {
+            dismissEditorKeyboard(focusedField: editorFocus)
+            action()
+        } label: {
             Image(systemName: systemName)
                 .font(.body.weight(.semibold))
                 .frame(width: EditorTheme.controlSize, height: EditorTheme.controlSize)
@@ -95,6 +103,13 @@ struct DurationInputView: View {
 
 #Preview {
     @Previewable @State var seconds = 90
-    DurationInputView(kind: .work, seconds: $seconds)
-        .padding()
+    @Previewable @FocusState var focus: EditorFocusField?
+    let previewID = UUID()
+    DurationInputView(
+        kind: .work,
+        seconds: $seconds,
+        editorFocus: $focus,
+        editorFocusCase: .phaseDuration(previewID)
+    )
+    .padding()
 }

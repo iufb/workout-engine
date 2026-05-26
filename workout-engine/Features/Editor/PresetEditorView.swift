@@ -16,6 +16,7 @@ struct PresetEditorView: View {
     @State private var isPhaseReordering = false
     @State private var phaseReorderSession = PhaseListReorderSession()
     @State private var roundStepperHapticTrigger = false
+    @FocusState private var focusedField: EditorFocusField?
 
     var body: some View {
         NavigationStack {
@@ -24,25 +25,38 @@ struct PresetEditorView: View {
                     TextField(L10n.t("Название интервала"), text: $name)
                         .font(.title2.weight(.semibold))
                         .textFieldStyle(.plain)
+                        .focused($focusedField, equals: .presetName)
                         .listRowInsets(EditorTheme.listRowInsets)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
 
-                    PresetSummaryCard(
-                        totalDuration: draftPreset.estimatedTotalDuration,
-                        cyclePhases: phases,
-                        roundCount: roundCount
-                    )
-                    .editorCard()
+                    Button {
+                        dismissEditorKeyboard(focusedField: $focusedField)
+                    } label: {
+                        PresetSummaryCard(
+                            totalDuration: draftPreset.estimatedTotalDuration,
+                            cyclePhases: phases,
+                            roundCount: roundCount
+                        )
+                        .editorCard()
+                    }
+                    .buttonStyle(.plain)
                     .listRowInsets(EditorTheme.listRowInsets)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(L10n.t("Количество кругов"))
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .textCase(.uppercase)
+                        Button {
+                            dismissEditorKeyboard(focusedField: $focusedField)
+                        } label: {
+                            Text(L10n.t("Количество кругов"))
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .textCase(.uppercase)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
 
                         roundCountRow
                     }
@@ -57,7 +71,8 @@ struct PresetEditorView: View {
                             phase: $phase,
                             phases: $phases,
                             session: phaseReorderSession,
-                            isReordering: $isPhaseReordering
+                            isReordering: $isPhaseReordering,
+                            editorFocus: $focusedField
                         )
                         .transaction { transaction in
                             if phaseReorderSession.draggingID != nil {
@@ -66,7 +81,15 @@ struct PresetEditorView: View {
                         }
                     }
                 } header: {
-                    Text(L10n.t("Круг"))
+                    Button {
+                        dismissEditorKeyboard(focusedField: $focusedField)
+                    } label: {
+                        Text(L10n.t("Круг"))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .textCase(nil)
                 }
 
                 Section {
@@ -77,6 +100,7 @@ struct PresetEditorView: View {
                 }
             }
             .listStyle(.plain)
+            .scrollDismissesKeyboard(.interactively)
             .scrollContentBackground(.hidden)
             .contentMargins(.horizontal, EditorTheme.horizontalPadding, for: .scrollContent)
             .safeAreaPadding(.bottom, EditorTheme.scrollBottomPadding)
@@ -116,13 +140,23 @@ struct PresetEditorView: View {
 
     private var roundCountRow: some View {
         HStack {
-            Text(RoundsFormatting.label(count: roundCount))
-                .font(.headline)
-            Spacer()
+            Button {
+                dismissEditorKeyboard(focusedField: $focusedField)
+            } label: {
+                Text(RoundsFormatting.label(count: roundCount))
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
             RoundCountStepper(
                 count: $roundCount,
                 range: WorkoutPreset.minRoundCount ... WorkoutPreset.maxRoundCount,
-                onAdjust: { roundStepperHapticTrigger.toggle() }
+                onAdjust: {
+                    dismissEditorKeyboard(focusedField: $focusedField)
+                    roundStepperHapticTrigger.toggle()
+                }
             )
         }
         .padding(.vertical, 4)
@@ -132,6 +166,7 @@ struct PresetEditorView: View {
 
     private var addPhaseButton: some View {
         Button {
+            dismissEditorKeyboard(focusedField: $focusedField)
             showAddPhaseSheet = true
         } label: {
             Label(L10n.t("Добавить фазу"), systemImage: "plus")
@@ -229,6 +264,7 @@ struct PresetEditorView: View {
     }
 
     private func startNewPreset() {
+        dismissEditorKeyboard(focusedField: $focusedField)
         withAnimation(.snappy) {
             let preset = WorkoutPreset.defaultNew()
             editingPresetID = nil
@@ -240,6 +276,7 @@ struct PresetEditorView: View {
     }
 
     private func apply(preset: WorkoutPreset) {
+        dismissEditorKeyboard(focusedField: $focusedField)
         withAnimation(.snappy) {
             editingPresetID = preset.id
             isBuiltIn = preset.isBuiltIn

@@ -4,6 +4,7 @@ struct PhaseCardView: View {
     @Binding var phase: PresetPhaseItem
     let phaseIndex: Int
     let phaseCount: Int
+    var editorFocus: FocusState<EditorFocusField?>.Binding
     let isDragging: Bool
     let onDragChanged: (DragGesture.Value) -> Void
     let onDragEnded: () -> Void
@@ -12,6 +13,7 @@ struct PhaseCardView: View {
         phase: Binding<PresetPhaseItem>,
         phaseIndex: Int,
         phaseCount: Int,
+        editorFocus: FocusState<EditorFocusField?>.Binding,
         isDragging: Bool = false,
         onDragChanged: @escaping (DragGesture.Value) -> Void = { _ in },
         onDragEnded: @escaping () -> Void = {}
@@ -19,6 +21,7 @@ struct PhaseCardView: View {
         _phase = phase
         self.phaseIndex = phaseIndex
         self.phaseCount = phaseCount
+        self.editorFocus = editorFocus
         self.isDragging = isDragging
         self.onDragChanged = onDragChanged
         self.onDragEnded = onDragEnded
@@ -35,15 +38,35 @@ struct PhaseCardView: View {
                     .highPriorityGesture(reorderGesture)
                     .accessibilityLabel(L10n.t("Переместить"))
 
-                PhaseKindIcon(kind: phase.kind)
-                    .accessibilityHidden(true)
+                Button {
+                    dismissEditorKeyboard(focusedField: editorFocus)
+                } label: {
+                    PhaseKindIcon(kind: phase.kind)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(phase.kind.displayName)
-                        .font(.headline)
+                    Button {
+                        dismissEditorKeyboard(focusedField: editorFocus)
+                    } label: {
+                        Text(phase.kind.displayName)
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
 
-                    DurationInputView(kind: phase.kind, seconds: $phase.durationSeconds)
+                    DurationInputView(
+                        kind: phase.kind,
+                        seconds: $phase.durationSeconds,
+                        editorFocus: editorFocus,
+                        editorFocusCase: .phaseDuration(phase.id)
+                    )
                 }
+
+                Spacer(minLength: 0)
+                    .defocusEditorOnTap(editorFocus)
             }
             .frame(minHeight: EditorTheme.phaseCardMinHeight - 28, alignment: .center)
         }
@@ -55,7 +78,12 @@ struct PhaseCardView: View {
 
     private var reorderGesture: some Gesture {
         DragGesture(minimumDistance: 4, coordinateSpace: .named(EditorTheme.phaseReorderCoordinateSpace))
-            .onChanged(onDragChanged)
+            .onChanged { value in
+                if editorFocus.wrappedValue != nil {
+                    dismissEditorKeyboard(focusedField: editorFocus)
+                }
+                onDragChanged(value)
+            }
             .onEnded { _ in onDragEnded() }
     }
 
@@ -66,6 +94,12 @@ struct PhaseCardView: View {
 
 #Preview {
     @Previewable @State var phase = PresetPhaseItem(kind: .work, durationSeconds: 45)
-    PhaseCardView(phase: $phase, phaseIndex: 1, phaseCount: 3)
-        .padding()
+    @Previewable @FocusState var focus: EditorFocusField?
+    PhaseCardView(
+        phase: $phase,
+        phaseIndex: 1,
+        phaseCount: 3,
+        editorFocus: $focus
+    )
+    .padding()
 }

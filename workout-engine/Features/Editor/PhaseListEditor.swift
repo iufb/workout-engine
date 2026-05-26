@@ -90,6 +90,7 @@ struct PhaseListRow: View {
     @Binding var phases: [PresetPhaseItem]
     @Bindable var session: PhaseListReorderSession
     @Binding var isReordering: Bool
+    var editorFocus: FocusState<EditorFocusField?>.Binding
 
     private var item: PresetPhaseItem { phase }
 
@@ -102,6 +103,7 @@ struct PhaseListRow: View {
             phase: $phase,
             phaseIndex: session.phaseIndex(for: item.id, in: phases),
             phaseCount: phases.count,
+            editorFocus: editorFocus,
             isDragging: session.draggingID == item.id,
             onDragChanged: { value in
                 session.handleDragChanged(
@@ -125,6 +127,7 @@ struct PhaseListRow: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             if canSwipeDelete {
                 Button(role: .destructive) {
+                    dismissEditorKeyboard(focusedField: editorFocus)
                     deletePhase(id: item.id)
                 } label: {
                     Label(L10n.t("Удалить"), systemImage: "trash")
@@ -221,6 +224,7 @@ private struct PhaseRowFramesPreference: PreferenceKey {
     @Previewable @State var phases = WorkoutPreset.defaultNew().phases
     @Previewable @State var isReordering = false
     @Previewable @State var session = PhaseListReorderSession()
+    @Previewable @FocusState var focus: EditorFocusField?
     List {
         Section {
             ForEach($phases) { $phase in
@@ -228,7 +232,8 @@ private struct PhaseRowFramesPreference: PreferenceKey {
                     phase: $phase,
                     phases: $phases,
                     session: session,
-                    isReordering: $isReordering
+                    isReordering: $isReordering,
+                    editorFocus: $focus
                 )
             }
         } header: {
