@@ -64,7 +64,7 @@ final class WorkoutEngineTests: XCTestCase {
 
     func testStopReturnsToIdle() {
         let engine = WorkoutEngine()
-        engine.load(preset: .tabata)
+        engine.load(preset: .tabataSample)
         engine.start()
         engine.stop()
         XCTAssertEqual(engine.status, .idle)

@@ -12,16 +12,15 @@ final class PresetStore {
     func seedDefaultsIfNeeded() throws {
         let descriptor = FetchDescriptor<StoredPreset>()
         let existing = try modelContext.fetch(descriptor)
-        guard existing.isEmpty else {
-            for stored in existing {
-                stored.migratePhasesIfNeeded()
+        for stored in existing {
+            stored.migratePhasesIfNeeded()
+            if stored.isBuiltIn {
+                if AppSettings.shared.lastUsedPresetID == stored.id {
+                    AppSettings.shared.lastUsedPresetID = nil
+                }
+                modelContext.delete(stored)
             }
-            try modelContext.save()
-            return
         }
-
-        let tabata = StoredPreset(from: .tabata)
-        modelContext.insert(tabata)
         try modelContext.save()
     }
 
@@ -33,10 +32,7 @@ final class PresetStore {
         try modelContext.save()
         return stored
             .sorted { lhs, rhs in
-                if lhs.isBuiltIn != rhs.isBuiltIn {
-                    return lhs.isBuiltIn && !rhs.isBuiltIn
-                }
-                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+                lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
             }
             .map { $0.toWorkoutPreset() }
     }
@@ -56,22 +52,11 @@ final class PresetStore {
     }
 
     func delete(_ preset: WorkoutPreset) throws {
-        guard !preset.isBuiltIn else { return }
         let targetID = preset.id
         var descriptor = FetchDescriptor<StoredPreset>(predicate: #Predicate { $0.id == targetID })
         descriptor.fetchLimit = 1
         if let stored = try modelContext.fetch(descriptor).first {
             modelContext.delete(stored)
-            try modelContext.save()
-        }
-    }
-
-    func resetTabataToDefault() throws {
-        let builtInID = WorkoutPreset.tabataID
-        var descriptor = FetchDescriptor<StoredPreset>(predicate: #Predicate { $0.id == builtInID })
-        descriptor.fetchLimit = 1
-        if let stored = try modelContext.fetch(descriptor).first {
-            stored.update(from: .tabata)
             try modelContext.save()
         }
     }

@@ -14,10 +14,10 @@ final class WorkoutPresetTests: XCTestCase {
     }
 
     func testTabataCycleAndExpandedPhaseCount() {
-        XCTAssertEqual(WorkoutPreset.tabata.phases.count, 2)
-        XCTAssertEqual(WorkoutPreset.tabata.roundCount, 8)
-        XCTAssertEqual(WorkoutPreset.tabata.phaseCount, 15)
-        XCTAssertEqual(WorkoutPreset.tabata.expandedPhases.count, 15)
+        XCTAssertEqual(WorkoutPreset.tabataSample.phases.count, 2)
+        XCTAssertEqual(WorkoutPreset.tabataSample.roundCount, 8)
+        XCTAssertEqual(WorkoutPreset.tabataSample.phaseCount, 15)
+        XCTAssertEqual(WorkoutPreset.tabataSample.expandedPhases.count, 15)
     }
 
     func testLegacyMigrationMatchesTabataExpandedShape() {
@@ -28,7 +28,7 @@ final class WorkoutPresetTests: XCTestCase {
             restSeconds: 10
         )
         XCTAssertEqual(legacy.count, 16)
-        let tabataExpanded = WorkoutPreset.tabata.expandedPhases
+        let tabataExpanded = WorkoutPreset.tabataSample.expandedPhases
         XCTAssertEqual(tabataExpanded.filter { $0.kind == .work }.count, 8)
         XCTAssertEqual(tabataExpanded.filter { $0.kind == .rest }.count, 7)
         XCTAssertEqual(tabataExpanded.last?.kind, .work)

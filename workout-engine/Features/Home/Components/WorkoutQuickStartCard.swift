@@ -52,6 +52,6 @@ struct WorkoutQuickStartCard: View {
 }
 
 #Preview {
-    WorkoutQuickStartCard(preset: .tabata, showsLastUsedBadge: true)
+    WorkoutQuickStartCard(preset: .defaultNew(), showsLastUsedBadge: true)
         .padding()
 }

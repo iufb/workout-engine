@@ -26,7 +26,7 @@ final class PresetCycleExpansionTests: XCTestCase {
     }
 
     func testTabataCycleExpansion() {
-        let preset = WorkoutPreset.tabata
+        let preset = WorkoutPreset.tabataSample
         XCTAssertEqual(preset.phases.count, 2)
         XCTAssertEqual(preset.roundCount, 8)
         XCTAssertEqual(preset.expandedPhases.count, 15)

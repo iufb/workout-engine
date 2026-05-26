@@ -150,7 +150,7 @@ struct ActiveWorkoutView: View {
     NavigationStack {
         ActiveWorkoutView(
             coordinator: WorkoutSessionCoordinator(),
-            preset: .tabata
+            preset: .defaultNew()
         )
     }
 }

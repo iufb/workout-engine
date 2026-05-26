@@ -39,19 +39,6 @@ struct WorkoutPreset: Identifiable, Codable, Equatable, Hashable, Sendable {
         self.isBuiltIn = isBuiltIn
     }
 
-    static let tabataID = UUID(uuidString: "A1B2C3D4-E5F6-7890-ABCD-EF1234567890")!
-
-    static let tabata = WorkoutPreset(
-        id: tabataID,
-        name: L10n.t("Tabata"),
-        phases: [
-            PresetPhaseItem(kind: .work, durationSeconds: 20),
-            PresetPhaseItem(kind: .rest, durationSeconds: 10),
-        ],
-        roundCount: 8,
-        isBuiltIn: true
-    )
-
     static func defaultNew(name: String? = nil) -> WorkoutPreset {
         WorkoutPreset(
             name: name ?? L10n.t("Мой интервал"),

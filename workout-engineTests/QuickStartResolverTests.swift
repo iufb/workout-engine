@@ -2,35 +2,35 @@ import XCTest
 @testable import workout_engine
 
 final class QuickStartResolverTests: XCTestCase {
-    private let tabata = WorkoutPreset.tabata
-    private lazy var custom = WorkoutPreset(
-        name: "Custom",
-        phases: WorkoutPreset.defaultNew().phases,
-        isBuiltIn: false
-    )
+    private lazy var alpha = WorkoutPreset(name: "Alpha", phases: WorkoutPreset.defaultNew().phases)
+    private lazy var beta = WorkoutPreset(name: "Beta", phases: WorkoutPreset.defaultNew().phases)
 
     func testResolveReturnsLastUsedWhenPresent() {
-        let presets = [tabata, custom]
-        let resolved = QuickStartResolver.resolve(presets: presets, lastUsedID: custom.id)
-        XCTAssertEqual(resolved?.id, custom.id)
+        let presets = [alpha, beta]
+        let resolved = QuickStartResolver.resolve(presets: presets, lastUsedID: beta.id)
+        XCTAssertEqual(resolved?.id, beta.id)
     }
 
-    func testResolveFallsBackToBuiltInWhenLastUsedMissing() {
-        let presets = [tabata, custom]
+    func testResolveFallsBackToFirstPresetWhenLastUsedMissing() {
+        let presets = [alpha, beta]
         let unknownID = UUID()
         let resolved = QuickStartResolver.resolve(presets: presets, lastUsedID: unknownID)
-        XCTAssertEqual(resolved?.id, tabata.id)
+        XCTAssertEqual(resolved?.id, alpha.id)
     }
 
-    func testResolveFallsBackToBuiltInWhenLastUsedNil() {
-        let presets = [tabata, custom]
+    func testResolveFallsBackToFirstPresetWhenLastUsedNil() {
+        let presets = [alpha, beta]
         let resolved = QuickStartResolver.resolve(presets: presets, lastUsedID: nil)
-        XCTAssertEqual(resolved?.id, tabata.id)
+        XCTAssertEqual(resolved?.id, alpha.id)
+    }
+
+    func testResolveReturnsNilWhenNoPresets() {
+        XCTAssertNil(QuickStartResolver.resolve(presets: [], lastUsedID: nil))
     }
 
     func testIsLastUsed() {
-        XCTAssertTrue(QuickStartResolver.isLastUsed(preset: custom, lastUsedID: custom.id))
-        XCTAssertFalse(QuickStartResolver.isLastUsed(preset: tabata, lastUsedID: custom.id))
-        XCTAssertFalse(QuickStartResolver.isLastUsed(preset: tabata, lastUsedID: nil))
+        XCTAssertTrue(QuickStartResolver.isLastUsed(preset: beta, lastUsedID: beta.id))
+        XCTAssertFalse(QuickStartResolver.isLastUsed(preset: alpha, lastUsedID: beta.id))
+        XCTAssertFalse(QuickStartResolver.isLastUsed(preset: alpha, lastUsedID: nil))
     }
 }

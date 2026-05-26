@@ -100,11 +100,11 @@ enum RoundsFormatting {
     .padding()
 }
 
-#Preview("Tabata") {
+#Preview("Multi-round") {
     PresetSummaryCard(
-        totalDuration: WorkoutPreset.tabata.estimatedTotalDuration,
-        cyclePhases: WorkoutPreset.tabata.phases,
-        roundCount: WorkoutPreset.tabata.roundCount
+        totalDuration: WorkoutPreset.defaultNew().estimatedTotalDuration * 4,
+        cyclePhases: WorkoutPreset.defaultNew().phases,
+        roundCount: 4
     )
     .editorCard()
     .padding(.horizontal, 20)

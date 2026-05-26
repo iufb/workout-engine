@@ -8,7 +8,6 @@ struct PresetEditorView: View {
     @State private var name = ""
     @State private var phases: [PresetPhaseItem] = WorkoutPreset.defaultNew().phases
     @State private var roundCount = WorkoutPreset.defaultNew().roundCount
-    @State private var isBuiltIn = false
     @State private var saveMessage: String?
     @State private var showSaveToast = false
     @State private var showAddPhaseSheet = false
@@ -114,9 +113,7 @@ struct PresetEditorView: View {
                 EditorSaveBar(
                     canSave: canSave,
                     validationHint: validationHint,
-                    showsTabataReset: isBuiltIn,
-                    onSave: save,
-                    onResetTabata: resetTabata
+                    onSave: save
                 )
             }
             .overlay(alignment: .top) {
@@ -223,8 +220,7 @@ struct PresetEditorView: View {
                 ? L10n.t("Интервал")
                 : name,
             phases: phases,
-            roundCount: roundCount,
-            isBuiltIn: isBuiltIn
+            roundCount: roundCount
         )
     }
 
@@ -268,7 +264,6 @@ struct PresetEditorView: View {
         withAnimation(.snappy) {
             let preset = WorkoutPreset.defaultNew()
             editingPresetID = nil
-            isBuiltIn = false
             name = preset.name
             phases = preset.phases
             roundCount = preset.roundCount
@@ -279,7 +274,6 @@ struct PresetEditorView: View {
         dismissEditorKeyboard(focusedField: $focusedField)
         withAnimation(.snappy) {
             editingPresetID = preset.id
-            isBuiltIn = preset.isBuiltIn
             name = preset.name
             phases = preset.phases
             roundCount = preset.roundCount
@@ -298,12 +292,9 @@ struct PresetEditorView: View {
             let store = PresetStore(modelContext: modelContext)
             try store.save(preset)
             editingPresetID = preset.id
-            isBuiltIn = preset.isBuiltIn
             roundCount = preset.roundCount
             savedPresets = try store.fetchAll()
-            saveMessage = preset.isBuiltIn
-                ? L10n.t("Пресет Tabata обновлён")
-                : L10n.t("Интервал «\(preset.name)» сохранён")
+            saveMessage = L10n.t("Интервал «\(preset.name)» сохранён")
             presentSaveToast()
             saveTrigger.toggle()
         } catch {
@@ -320,15 +311,6 @@ struct PresetEditorView: View {
         }
     }
 
-    private func resetTabata() {
-        apply(preset: .tabata)
-        do {
-            let store = PresetStore(modelContext: modelContext)
-            try store.resetTabataToDefault()
-            try store.save(.tabata)
-            savedPresets = try store.fetchAll()
-        } catch {}
-    }
 }
 
 #Preview("Light") {

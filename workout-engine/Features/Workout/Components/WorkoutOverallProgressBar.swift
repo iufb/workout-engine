@@ -30,7 +30,7 @@ struct WorkoutOverallProgressBar: View {
 
 #Preview {
     let engine = WorkoutEngine()
-    engine.load(preset: .tabata)
+    engine.load(preset: .defaultNew())
     engine.start()
     return WorkoutOverallProgressBar(engine: engine)
         .padding()

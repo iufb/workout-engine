@@ -9,10 +9,6 @@ struct HomeView: View {
     @State private var coordinator = WorkoutSessionCoordinator()
     @State private var startHapticTrigger = false
 
-    private var customPresets: [WorkoutPreset] {
-        presets.filter { !$0.isBuiltIn }
-    }
-
     private var quickStartPreset: WorkoutPreset? {
         QuickStartResolver.resolve(
             presets: presets,
@@ -37,13 +33,13 @@ struct HomeView: View {
                 }
 
                 Section {
-                    if customPresets.isEmpty {
+                    if presets.isEmpty {
                         WorkoutEmptyPresetsHint()
                             .listRowInsets(listRowInsets)
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
                     } else {
-                        ForEach(customPresets) { preset in
+                        ForEach(presets) { preset in
                             presetRow(preset: preset)
                         }
                     }

@@ -3,7 +3,7 @@ import XCTest
 
 final class WorkoutSequenceBuilderTests: XCTestCase {
     func testTabataSequencePhaseCount() {
-        let preset = WorkoutPreset.tabata
+        let preset = WorkoutPreset.tabataSample
         let sequence = WorkoutSequenceBuilder.sequence(for: preset)
 
         XCTAssertEqual(preset.expandedPhases.count, 15)
