@@ -38,47 +38,62 @@ final class StoredPreset {
         self.init(
             id: preset.id,
             name: preset.name,
-            phasesJSON: PresetMigration.encodePhases(preset.phases),
-            isBuiltIn: preset.isBuiltIn
+            phasesJSON: PresetMigration.encodePreset(preset),
+            isBuiltIn: preset.isBuiltIn,
+            rounds: preset.roundCount
         )
     }
 
     func toWorkoutPreset() -> WorkoutPreset {
-        let phases = resolvedPhases()
+        let definition = resolvedDefinition()
         return WorkoutPreset(
             id: id,
             name: name,
-            phases: phases,
+            phases: definition.cycle,
+            roundCount: definition.roundCount,
             isBuiltIn: isBuiltIn
         )
     }
 
     func update(from preset: WorkoutPreset) {
         name = preset.name
-        phasesJSON = PresetMigration.encodePhases(preset.phases)
+        phasesJSON = PresetMigration.encodePreset(preset)
         isBuiltIn = preset.isBuiltIn
+        rounds = preset.roundCount
     }
 
-    func resolvedPhases() -> [PresetPhaseItem] {
-        if let decoded = PresetMigration.decodePhases(from: phasesJSON), !decoded.isEmpty {
+    func resolvedDefinition() -> PresetMigration.PresetPhaseDefinition {
+        if let decoded = PresetMigration.decodePresetDefinition(from: phasesJSON) {
             return decoded
         }
         if rounds > 0 || prepareSeconds > 0 || workSeconds > 0 {
-            return PresetMigration.phasesFromLegacy(
+            let legacy = PresetMigration.phasesFromLegacy(
                 rounds: rounds,
                 prepareSeconds: prepareSeconds,
                 workSeconds: workSeconds,
                 restSeconds: restSeconds
             )
+            return PresetMigration.PresetPhaseDefinition(cycle: legacy, roundCount: 1)
         }
-        return WorkoutPreset.defaultNew().phases
+        let defaultPreset = WorkoutPreset.defaultNew()
+        return PresetMigration.PresetPhaseDefinition(
+            cycle: defaultPreset.phases,
+            roundCount: defaultPreset.roundCount
+        )
+    }
+
+    func resolvedPhases() -> [PresetPhaseItem] {
+        resolvedDefinition().cycle
     }
 
     func migratePhasesIfNeeded() {
-        if let decoded = PresetMigration.decodePhases(from: phasesJSON), !decoded.isEmpty {
+        if PresetMigration.decodePresetDefinition(from: phasesJSON) != nil {
             return
         }
-        let migrated = resolvedPhases()
-        phasesJSON = PresetMigration.encodePhases(migrated)
+        let migrated = resolvedDefinition()
+        phasesJSON = PresetMigration.encodePresetPhases(
+            cycle: migrated.cycle,
+            roundCount: migrated.roundCount
+        )
     }
 }

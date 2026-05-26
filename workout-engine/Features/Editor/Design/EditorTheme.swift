@@ -7,7 +7,9 @@ enum EditorTheme {
     static let sectionSpacing: CGFloat = 12
     static let phaseCardMinHeight: CGFloat = 88
     static let controlSize: CGFloat = 44
+    static let compactControlSize: CGFloat = 32
     static let scrollBottomPadding: CGFloat = 16
+    static let listRowInsets = EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0)
     static let phaseReorderCoordinateSpace = "PhaseReorderList"
     static let phaseReorderAnimation: Animation = .smooth(duration: 0.28)
 

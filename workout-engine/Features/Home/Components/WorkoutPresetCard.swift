@@ -11,7 +11,8 @@ struct WorkoutPresetCard: View {
 
                 PresetSummaryCard(
                     totalDuration: preset.estimatedTotalDuration,
-                    phases: preset.phases
+                    cyclePhases: preset.phases,
+                    roundCount: preset.roundCount
                 )
             }
 
@@ -23,10 +24,18 @@ struct WorkoutPresetCard: View {
         }
         .workoutCard()
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            String(
-                localized: "\(preset.name), \(preset.phaseCount) фаз, \(TimeFormatting.durationLabel(preset.estimatedTotalDuration))"
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        let duration = TimeFormatting.durationLabel(preset.estimatedTotalDuration)
+        if preset.roundCount > 1 {
+            return String(
+                localized: "\(preset.name), \(preset.phaseCount) фаз, \(preset.roundCount) кругов, \(duration)"
             )
+        }
+        return String(
+            localized: "\(preset.name), \(preset.phaseCount) фаз, \(duration)"
         )
     }
 }

@@ -2,7 +2,8 @@ import SwiftUI
 
 struct PresetSummaryCard: View {
     let totalDuration: TimeInterval
-    let phases: [PresetPhaseItem]
+    let cyclePhases: [PresetPhaseItem]
+    let roundCount: Int
 
     private let timelineSpacing: CGFloat = 2
     private let timelineHeight: CGFloat = 8
@@ -16,28 +17,41 @@ struct PresetSummaryCard: View {
                     .minimumScaleFactor(0.8)
                     .lineLimit(1)
                 Spacer()
-                Text(String(localized: "\(phases.count) фаз"))
+                Text(metaLabel)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
             }
 
-            if !phases.isEmpty {
+            if !cyclePhases.isEmpty {
                 phaseTimeline
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            String(
-                localized: "Итого \(TimeFormatting.durationLabel(totalDuration)), \(phases.count) фаз"
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var metaLabel: String {
+        let phasePart = String(localized: "\(cyclePhases.count) фаз")
+        guard roundCount > 1 else { return phasePart }
+        return phasePart + String(localized: " · ") + RoundsFormatting.label(count: roundCount)
+    }
+
+    private var accessibilityLabel: String {
+        let duration = TimeFormatting.durationLabel(totalDuration)
+        if roundCount > 1 {
+            return String(
+                localized: "Итого \(duration), \(cyclePhases.count) фаз в круге, \(roundCount) кругов"
             )
-        )
+        }
+        return String(localized: "Итого \(duration), \(cyclePhases.count) фаз")
     }
 
     private var phaseTimeline: some View {
         GeometryReader { geometry in
             let widths = segmentWidths(for: geometry.size.width)
             HStack(spacing: timelineSpacing) {
-                ForEach(Array(phases.enumerated()), id: \.element.id) { index, phase in
+                ForEach(Array(cyclePhases.enumerated()), id: \.element.id) { index, phase in
                     Capsule()
                         .fill(PhaseColors.background(for: phase.kind))
                         .frame(width: widths[index])
@@ -51,14 +65,14 @@ struct PresetSummaryCard: View {
 
     /// Distributes width across segments so total including gaps never exceeds `totalWidth`.
     private func segmentWidths(for totalWidth: CGFloat) -> [CGFloat] {
-        let count = phases.count
+        let count = cyclePhases.count
         guard count > 0, totalWidth > 0 else { return [] }
 
         let gapTotal = timelineSpacing * CGFloat(max(0, count - 1))
         let available = max(0, totalWidth - gapTotal)
-        let durationTotal = CGFloat(max(1, phases.reduce(0) { $0 + max(0, $1.durationSeconds) }))
+        let durationTotal = CGFloat(max(1, cyclePhases.reduce(0) { $0 + max(0, $1.durationSeconds) }))
 
-        var widths = phases.map { phase in
+        var widths = cyclePhases.map { phase in
             available * CGFloat(max(0, phase.durationSeconds)) / durationTotal
         }
 
@@ -72,19 +86,27 @@ struct PresetSummaryCard: View {
     }
 }
 
+enum RoundsFormatting {
+    static func label(count: Int) -> String {
+        String(localized: "\(count) кругов")
+    }
+}
+
 #Preview("Default") {
     PresetSummaryCard(
-        totalDuration: 240,
-        phases: WorkoutPreset.defaultNew().phases
+        totalDuration: 40,
+        cyclePhases: WorkoutPreset.defaultNew().phases,
+        roundCount: 1
     )
     .editorCard()
     .padding()
 }
 
-#Preview("Tabata 16") {
+#Preview("Tabata") {
     PresetSummaryCard(
         totalDuration: WorkoutPreset.tabata.estimatedTotalDuration,
-        phases: WorkoutPreset.tabata.phases
+        cyclePhases: WorkoutPreset.tabata.phases,
+        roundCount: WorkoutPreset.tabata.roundCount
     )
     .editorCard()
     .padding(.horizontal, 20)

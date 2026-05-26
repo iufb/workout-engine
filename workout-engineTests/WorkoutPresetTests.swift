@@ -2,21 +2,25 @@ import XCTest
 @testable import workout_engine
 
 final class WorkoutPresetTests: XCTestCase {
-    func testDefaultNewHasThreePhases() {
+    func testDefaultNewHasThreePhaseCycleAndOneRound() {
         let preset = WorkoutPreset.defaultNew()
         XCTAssertEqual(preset.phases.count, 3)
+        XCTAssertEqual(preset.roundCount, 1)
         XCTAssertEqual(preset.phases.map(\.kind), [.prepare, .work, .rest])
         XCTAssertEqual(preset.phases[0].durationSeconds, 10)
         XCTAssertEqual(preset.phases[1].durationSeconds, 20)
         XCTAssertEqual(preset.phases[2].durationSeconds, 10)
+        XCTAssertEqual(preset.phaseCount, 3)
     }
 
-    func testTabataExpandedPhaseCount() {
-        XCTAssertEqual(WorkoutPreset.makeTabataPhases().count, 16)
-        XCTAssertEqual(WorkoutPreset.tabata.phaseCount, 16)
+    func testTabataCycleAndExpandedPhaseCount() {
+        XCTAssertEqual(WorkoutPreset.tabata.phases.count, 2)
+        XCTAssertEqual(WorkoutPreset.tabata.roundCount, 8)
+        XCTAssertEqual(WorkoutPreset.tabata.phaseCount, 15)
+        XCTAssertEqual(WorkoutPreset.tabata.expandedPhases.count, 15)
     }
 
-    func testLegacyMigrationMatchesTabataShape() {
+    func testLegacyMigrationMatchesTabataExpandedShape() {
         let legacy = PresetMigration.phasesFromLegacy(
             rounds: 8,
             prepareSeconds: 10,
@@ -24,6 +28,9 @@ final class WorkoutPresetTests: XCTestCase {
             restSeconds: 10
         )
         XCTAssertEqual(legacy.count, 16)
-        XCTAssertEqual(legacy.map(\.kind), WorkoutPreset.tabata.phases.map(\.kind))
+        let tabataExpanded = WorkoutPreset.tabata.expandedPhases
+        XCTAssertEqual(tabataExpanded.filter { $0.kind == .work }.count, 8)
+        XCTAssertEqual(tabataExpanded.filter { $0.kind == .rest }.count, 7)
+        XCTAssertEqual(tabataExpanded.last?.kind, .work)
     }
 }

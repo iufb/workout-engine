@@ -7,16 +7,15 @@ struct PresetEditorView: View {
     @State private var savedPresets: [WorkoutPreset] = []
     @State private var name = ""
     @State private var phases: [PresetPhaseItem] = WorkoutPreset.defaultNew().phases
+    @State private var roundCount = WorkoutPreset.defaultNew().roundCount
     @State private var isBuiltIn = false
     @State private var saveMessage: String?
     @State private var showSaveToast = false
     @State private var showAddPhaseSheet = false
     @State private var saveTrigger = false
     @State private var isPhaseReordering = false
-
-    private var listRowInsets: EdgeInsets {
-        EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0)
-    }
+    @State private var phaseReorderSession = PhaseListReorderSession()
+    @State private var roundStepperHapticTrigger = false
 
     var body: some View {
         NavigationStack {
@@ -25,37 +24,65 @@ struct PresetEditorView: View {
                     TextField(String(localized: "Название интервала"), text: $name)
                         .font(.title2.weight(.semibold))
                         .textFieldStyle(.plain)
-                        .padding(.vertical, 4)
-                        .listRowInsets(listRowInsets)
+                        .listRowInsets(EditorTheme.listRowInsets)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
 
                     PresetSummaryCard(
                         totalDuration: draftPreset.estimatedTotalDuration,
-                        phases: phases
+                        cyclePhases: phases,
+                        roundCount: roundCount
                     )
                     .editorCard()
-                    .listRowInsets(listRowInsets)
+                    .listRowInsets(EditorTheme.listRowInsets)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(String(localized: "Количество кругов"))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .textCase(.uppercase)
+
+                        roundCountRow
+                    }
+                    .listRowInsets(EditorTheme.listRowInsets)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
                 }
 
                 Section {
-                    PhaseListEditor(phases: $phases, isReordering: $isPhaseReordering)
+                    ForEach($phases) { $phase in
+                        PhaseListRow(
+                            phase: $phase,
+                            phases: $phases,
+                            session: phaseReorderSession,
+                            isReordering: $isPhaseReordering
+                        )
+                        .transaction { transaction in
+                            if phaseReorderSession.draggingID != nil {
+                                transaction.disablesAnimations = true
+                            }
+                        }
+                    }
+                } header: {
+                    Text(String(localized: "Круг"))
                 }
 
                 Section {
                     addPhaseButton
-                        .listRowInsets(listRowInsets)
+                        .listRowInsets(EditorTheme.listRowInsets)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                 }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .contentMargins(.horizontal, EditorTheme.horizontalPadding, for: .scrollContent)
+            .safeAreaPadding(.bottom, EditorTheme.scrollBottomPadding)
+            .phaseListReorderSupport(phases: $phases, session: phaseReorderSession)
             .scrollDisabled(isPhaseReordering)
             .background(EditorTheme.groupedBackground)
-            .contentMargins(.horizontal, EditorTheme.horizontalPadding, for: .scrollContent)
             .navigationTitle(String(localized: "Конструктор"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
@@ -83,7 +110,24 @@ struct PresetEditorView: View {
             }
             .task { await loadPresets() }
             .sensoryFeedback(.success, trigger: saveTrigger)
+            .sensoryFeedback(.selection, trigger: roundStepperHapticTrigger)
         }
+    }
+
+    private var roundCountRow: some View {
+        HStack {
+            Text(RoundsFormatting.label(count: roundCount))
+                .font(.headline)
+            Spacer()
+            RoundCountStepper(
+                count: $roundCount,
+                range: WorkoutPreset.minRoundCount ... WorkoutPreset.maxRoundCount,
+                onAdjust: { roundStepperHapticTrigger.toggle() }
+            )
+        }
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(String(localized: "Количество кругов, \(roundCount)"))
     }
 
     private var addPhaseButton: some View {
@@ -144,6 +188,7 @@ struct PresetEditorView: View {
                 ? String(localized: "Интервал")
                 : name,
             phases: phases,
+            roundCount: roundCount,
             isBuiltIn: isBuiltIn
         )
     }
@@ -190,6 +235,7 @@ struct PresetEditorView: View {
             isBuiltIn = false
             name = preset.name
             phases = preset.phases
+            roundCount = preset.roundCount
         }
     }
 
@@ -199,6 +245,7 @@ struct PresetEditorView: View {
             isBuiltIn = preset.isBuiltIn
             name = preset.name
             phases = preset.phases
+            roundCount = preset.roundCount
         }
     }
 
@@ -215,6 +262,7 @@ struct PresetEditorView: View {
             try store.save(preset)
             editingPresetID = preset.id
             isBuiltIn = preset.isBuiltIn
+            roundCount = preset.roundCount
             savedPresets = try store.fetchAll()
             saveMessage = preset.isBuiltIn
                 ? String(localized: "Пресет Tabata обновлён")

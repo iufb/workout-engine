@@ -32,7 +32,7 @@ struct PhaseCardView: View {
                     .foregroundStyle(.tertiary)
                     .frame(width: 20)
                     .contentShape(Rectangle())
-                    .gesture(reorderGesture)
+                    .highPriorityGesture(reorderGesture)
                     .accessibilityLabel(String(localized: "Переместить"))
 
                 PhaseKindIcon(kind: phase.kind)

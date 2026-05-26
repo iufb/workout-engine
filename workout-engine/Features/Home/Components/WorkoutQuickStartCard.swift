@@ -29,7 +29,8 @@ struct WorkoutQuickStartCard: View {
 
             PresetSummaryCard(
                 totalDuration: preset.estimatedTotalDuration,
-                phases: preset.phases
+                cyclePhases: preset.phases,
+                roundCount: preset.roundCount
             )
 
             Text(String(localized: "Начать"))

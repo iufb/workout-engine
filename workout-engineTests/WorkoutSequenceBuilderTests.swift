@@ -6,25 +6,24 @@ final class WorkoutSequenceBuilderTests: XCTestCase {
         let preset = WorkoutPreset.tabata
         let sequence = WorkoutSequenceBuilder.sequence(for: preset)
 
-        XCTAssertEqual(preset.phases.count, 16)
-        XCTAssertEqual(sequence.count, 16)
-        XCTAssertEqual(sequence.first?.kind, .prepare)
+        XCTAssertEqual(preset.expandedPhases.count, 15)
+        XCTAssertEqual(sequence.count, 15)
         XCTAssertEqual(sequence.filter { $0.kind == .work }.count, 8)
         XCTAssertEqual(sequence.filter { $0.kind == .rest }.count, 7)
         XCTAssertEqual(sequence.last?.kind, .work)
     }
 
-    func testLinearOrderPreserved() {
+    func testExpandedOrderForMultiRoundCycle() {
         let preset = WorkoutPreset(
             name: "Custom",
             phases: [
                 PresetPhaseItem(kind: .work, durationSeconds: 10),
                 PresetPhaseItem(kind: .rest, durationSeconds: 5),
-                PresetPhaseItem(kind: .prepare, durationSeconds: 3),
-            ]
+            ],
+            roundCount: 3
         )
         let sequence = WorkoutSequenceBuilder.sequence(for: preset)
-        XCTAssertEqual(sequence.map(\.kind), [.work, .rest, .prepare])
+        XCTAssertEqual(sequence.map(\.kind), [.work, .rest, .work, .rest, .work])
     }
 
     func testZeroDurationPhasesFiltered() {
@@ -33,7 +32,8 @@ final class WorkoutSequenceBuilderTests: XCTestCase {
             phases: [
                 PresetPhaseItem(kind: .prepare, durationSeconds: 0),
                 PresetPhaseItem(kind: .work, durationSeconds: 10),
-            ]
+            ],
+            roundCount: 1
         )
         let sequence = WorkoutSequenceBuilder.sequence(for: preset)
         XCTAssertEqual(sequence.count, 1)
