@@ -1,24 +1,13 @@
-//
-//  ContentView.swift
-//  workout-engine
-//
-//  Created by iufb on 25.05.2026.
-//
-
+import SwiftData
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        RootTabView()
     }
 }
 
 #Preview {
     ContentView()
+        .modelContainer(for: StoredPreset.self, inMemory: true)
 }

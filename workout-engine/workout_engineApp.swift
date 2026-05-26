@@ -1,17 +1,14 @@
-//
-//  workout_engineApp.swift
-//  workout-engine
-//
-//  Created by iufb on 25.05.2026.
-//
-
+import SwiftData
 import SwiftUI
 
 @main
 struct workout_engineApp: App {
+    var sharedModelContainer: ModelContainer = ModelContainerProvider.make()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootTabView()
         }
+        .modelContainer(sharedModelContainer)
     }
 }

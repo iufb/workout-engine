@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		1E7F4E1A2FC49A000097D051 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1E7F4DD02FC4978D0097D051 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1E7F4DD72FC4978D0097D051;
+			remoteInfo = "workout-engine";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		1E7F4DD82FC4978D0097D051 /* workout-engine.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "workout-engine.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E7F4E102FC49A000097D051 /* workout-engineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "workout-engineTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = "workout-engine";
 			sourceTree = "<group>";
 		};
+		1E7F4E112FC49A000097D051 /* workout-engineTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "workout-engineTests";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		1E7F4DD52FC4978D0097D051 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E7F4E142FC49A000097D051 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				1E7F4DDA2FC4978D0097D051 /* workout-engine */,
+				1E7F4E112FC49A000097D051 /* workout-engineTests */,
 				1E7F4DD92FC4978D0097D051 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				1E7F4DD82FC4978D0097D051 /* workout-engine.app */,
+				1E7F4E102FC49A000097D051 /* workout-engineTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = 1E7F4DD82FC4978D0097D051 /* workout-engine.app */;
 			productType = "com.apple.product-type.application";
 		};
+		1E7F4E122FC49A000097D051 /* workout-engineTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1E7F4E182FC49A000097D051 /* Build configuration list for PBXNativeTarget "workout-engineTests" */;
+			buildPhases = (
+				1E7F4E132FC49A000097D051 /* Sources */,
+				1E7F4E142FC49A000097D051 /* Frameworks */,
+				1E7F4E152FC49A000097D051 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1E7F4E192FC49A000097D051 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1E7F4E112FC49A000097D051 /* workout-engineTests */,
+			);
+			name = "workout-engineTests";
+			packageProductDependencies = (
+			);
+			productName = "workout-engineTests";
+			productReference = 1E7F4E102FC49A000097D051 /* workout-engineTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +130,10 @@
 				TargetAttributes = {
 					1E7F4DD72FC4978D0097D051 = {
 						CreatedOnToolsVersion = 26.5;
+					};
+					1E7F4E122FC49A000097D051 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 1E7F4DD72FC4978D0097D051;
 					};
 				};
 			};
@@ -100,12 +152,20 @@
 			projectRoot = "";
 			targets = (
 				1E7F4DD72FC4978D0097D051 /* workout-engine */,
+				1E7F4E122FC49A000097D051 /* workout-engineTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1E7F4DD62FC4978D0097D051 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E7F4E152FC49A000097D051 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +182,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1E7F4E132FC49A000097D051 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1E7F4E192FC49A000097D051 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1E7F4DD72FC4978D0097D051 /* workout-engine */;
+			targetProxy = 1E7F4E1A2FC49A000097D051 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1E7F4DE12FC4978E0097D051 /* Debug */ = {
@@ -252,12 +327,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = audio;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -271,7 +347,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -286,9 +362,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = audio;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -302,7 +378,41 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		1E7F4E1B2FC49A000097D051 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "iufb.workout-engineTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/workout-engine.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/workout-engine";
+			};
+			name = Debug;
+		};
+		1E7F4E1C2FC49A000097D051 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "iufb.workout-engineTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/workout-engine.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/workout-engine";
 			};
 			name = Release;
 		};
@@ -323,6 +433,15 @@
 			buildConfigurations = (
 				1E7F4DE42FC4978E0097D051 /* Debug */,
 				1E7F4DE52FC4978E0097D051 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1E7F4E182FC49A000097D051 /* Build configuration list for PBXNativeTarget "workout-engineTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1E7F4E1B2FC49A000097D051 /* Debug */,
+				1E7F4E1C2FC49A000097D051 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
