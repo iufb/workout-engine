@@ -6,6 +6,7 @@ import UIKit
 @Observable
 final class WorkoutSessionCoordinator: WorkoutFeedbackHandling {
     let engine = WorkoutEngine()
+    private var tickTask: Task<Void, Never>?
 
     init() {
         engine.feedbackHandler = self
@@ -22,9 +23,11 @@ final class WorkoutSessionCoordinator: WorkoutFeedbackHandling {
         updateIdleTimer(disabled: AppSettings.shared.keepScreenOnDuringWorkout)
         engine.load(preset: preset)
         engine.start()
+        startTickLoop()
     }
 
     func stop() {
+        stopTickLoop()
         engine.stop()
     }
 
@@ -62,9 +65,28 @@ final class WorkoutSessionCoordinator: WorkoutFeedbackHandling {
     }
 
     private func teardownSession() {
+        stopTickLoop()
         SoundPlayer.shared.stopKeepAlive()
         AudioSessionManager.shared.deactivate()
         updateIdleTimer(disabled: false)
+    }
+
+    private func startTickLoop() {
+        stopTickLoop()
+        let interval = WorkoutTheme.timelineAnimationInterval
+        tickTask = Task { @MainActor in
+            while !Task.isCancelled {
+                if engine.status == .running {
+                    engine.tick(now: .now)
+                }
+                try? await Task.sleep(for: .seconds(interval))
+            }
+        }
+    }
+
+    private func stopTickLoop() {
+        tickTask?.cancel()
+        tickTask = nil
     }
 
     private func updateIdleTimer(disabled: Bool) {

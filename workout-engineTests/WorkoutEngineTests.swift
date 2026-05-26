@@ -70,6 +70,22 @@ final class WorkoutEngineTests: XCTestCase {
         XCTAssertEqual(engine.status, .idle)
     }
 
+    func testPhasePositionLabelForMultiRoundPreset() {
+        let engine = WorkoutEngine()
+        engine.load(
+            preset: WorkoutPreset(
+                name: "Rounds",
+                phases: [
+                    PresetPhaseItem(kind: .work, durationSeconds: 5),
+                    PresetPhaseItem(kind: .rest, durationSeconds: 5),
+                ],
+                roundCount: 2
+            )
+        )
+        engine.start()
+        XCTAssertEqual(engine.phasePositionLabel, L10n.t("Круг 1 / 2 · Фаза 1 / 2"))
+    }
+
     func testPhaseNumberTracking() {
         let engine = WorkoutEngine()
         engine.load(

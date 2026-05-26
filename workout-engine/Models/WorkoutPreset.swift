@@ -5,12 +5,23 @@ struct PhaseStep: Identifiable, Codable, Equatable, Sendable {
     var kind: PhaseKind
     var duration: TimeInterval
     var round: Int?
+    var cyclePhaseNumber: Int?
+    var cyclePhaseCount: Int?
 
-    init(id: UUID = UUID(), kind: PhaseKind, duration: TimeInterval, round: Int? = nil) {
+    init(
+        id: UUID = UUID(),
+        kind: PhaseKind,
+        duration: TimeInterval,
+        round: Int? = nil,
+        cyclePhaseNumber: Int? = nil,
+        cyclePhaseCount: Int? = nil
+    ) {
         self.id = id
         self.kind = kind
         self.duration = duration
         self.round = round
+        self.cyclePhaseNumber = cyclePhaseNumber
+        self.cyclePhaseCount = cyclePhaseCount
     }
 }
 
@@ -24,19 +35,25 @@ struct WorkoutPreset: Identifiable, Codable, Equatable, Hashable, Sendable {
     var phases: [PresetPhaseItem]
     var roundCount: Int
     var isBuiltIn: Bool
+    var cachedTotalDuration: TimeInterval?
+    var cachedExpandedPhaseCount: Int?
 
     init(
         id: UUID = UUID(),
         name: String,
         phases: [PresetPhaseItem],
         roundCount: Int = 1,
-        isBuiltIn: Bool = false
+        isBuiltIn: Bool = false,
+        cachedTotalDuration: TimeInterval? = nil,
+        cachedExpandedPhaseCount: Int? = nil
     ) {
         self.id = id
         self.name = name
         self.phases = phases
         self.roundCount = Self.clampedRoundCount(roundCount)
         self.isBuiltIn = isBuiltIn
+        self.cachedTotalDuration = cachedTotalDuration
+        self.cachedExpandedPhaseCount = cachedExpandedPhaseCount
     }
 
     static func defaultNew(name: String? = nil) -> WorkoutPreset {
@@ -56,10 +73,25 @@ struct WorkoutPreset: Identifiable, Codable, Equatable, Hashable, Sendable {
     }
 
     var estimatedTotalDuration: TimeInterval {
-        expandedPhases.reduce(0) { $0 + TimeInterval(max(0, $1.durationSeconds)) }
+        if let cachedTotalDuration { return cachedTotalDuration }
+        return expandedPhases.reduce(0) { $0 + TimeInterval(max(0, $1.durationSeconds)) }
     }
 
-    var phaseCount: Int { expandedPhases.count }
+    var phaseCount: Int {
+        if let cachedExpandedPhaseCount { return cachedExpandedPhaseCount }
+        return expandedPhases.count
+    }
+
+    var cyclePhaseCount: Int { phases.count }
+
+    static func computeMetrics(
+        phases: [PresetPhaseItem],
+        roundCount: Int
+    ) -> (totalDuration: TimeInterval, expandedPhaseCount: Int) {
+        let expanded = PresetCycleExpander.expand(cycle: phases, roundCount: roundCount)
+        let total = expanded.reduce(0) { $0 + TimeInterval(max(0, $1.durationSeconds)) }
+        return (total, expanded.count)
+    }
 
     func normalized() -> WorkoutPreset {
         var copy = self

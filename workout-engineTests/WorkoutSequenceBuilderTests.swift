@@ -26,6 +26,22 @@ final class WorkoutSequenceBuilderTests: XCTestCase {
         XCTAssertEqual(sequence.map(\.kind), [.work, .rest, .work, .rest, .work])
     }
 
+    func testSequenceIncludesCycleMetadata() {
+        let preset = WorkoutPreset(
+            name: "Rounds",
+            phases: [
+                PresetPhaseItem(kind: .work, durationSeconds: 10),
+                PresetPhaseItem(kind: .rest, durationSeconds: 5),
+            ],
+            roundCount: 2
+        )
+        let sequence = WorkoutSequenceBuilder.sequence(for: preset)
+        XCTAssertEqual(sequence.first?.round, 1)
+        XCTAssertEqual(sequence.first?.cyclePhaseNumber, 1)
+        XCTAssertEqual(sequence.first?.cyclePhaseCount, 2)
+        XCTAssertEqual(sequence.last?.round, 2)
+    }
+
     func testZeroDurationPhasesFiltered() {
         let preset = WorkoutPreset(
             name: "Skip zero",

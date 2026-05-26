@@ -58,6 +58,17 @@ final class WorkoutEngine {
         phases.count
     }
 
+    var phasePositionLabel: String? {
+        guard let step = currentPhase,
+              let cycleNumber = step.cyclePhaseNumber,
+              let cycleTotal = step.cyclePhaseCount else { return nil }
+
+        if let round = step.round, let totalRounds = preset?.roundCount, totalRounds > 1 {
+            return L10n.t("Круг \(round) / \(totalRounds) · Фаза \(cycleNumber) / \(cycleTotal)")
+        }
+        return L10n.t("Фаза \(cycleNumber) / \(cycleTotal)")
+    }
+
     var progress: Double {
         progress(at: .now)
     }

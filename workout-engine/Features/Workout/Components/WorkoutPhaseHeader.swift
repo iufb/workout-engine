@@ -3,8 +3,8 @@ import SwiftUI
 struct WorkoutPhaseHeader: View {
     let presetName: String
     let phaseKind: PhaseKind?
-    let currentPhaseNumber: Int
-    let totalPhaseCount: Int
+    let positionLabel: String?
+    let remaining: TimeInterval
 
     var body: some View {
         VStack(spacing: 12) {
@@ -22,13 +22,27 @@ struct WorkoutPhaseHeader: View {
                     .foregroundStyle(.white)
             }
 
-            if totalPhaseCount > 0 {
-                Text(L10n.t("Фаза \(currentPhaseNumber) / \(totalPhaseCount)"))
+            if let positionLabel {
+                Text(positionLabel)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.white.opacity(0.82))
             }
         }
         .multilineTextAlignment(.center)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
+    }
+
+    private var accessibilitySummary: String {
+        var parts = [presetName]
+        if let phaseKind {
+            parts.append(phaseKind.displayName)
+        }
+        if let positionLabel {
+            parts.append(positionLabel)
+        }
+        parts.append(L10n.t("Осталось \(TimeFormatting.countdown(remaining))"))
+        return parts.joined(separator: ", ")
     }
 }
 
@@ -52,8 +66,8 @@ struct WorkoutPhaseHeaderIcon: View {
     WorkoutPhaseHeader(
         presetName: "Tabata",
         phaseKind: .work,
-        currentPhaseNumber: 3,
-        totalPhaseCount: 16
+        positionLabel: L10n.t("Круг 2 / 5 · Фаза 3 / 4"),
+        remaining: 18
     )
     .padding()
     .background(Color.green)

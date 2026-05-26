@@ -1,55 +1,37 @@
 import SwiftUI
 
 struct WorkoutTimerDisplay: View {
-    let engine: WorkoutEngine
-
-    private var isTimelinePaused: Bool {
-        engine.status != .running
-    }
+    let remaining: TimeInterval
+    let phaseProgress: Double
+    let ringSize: CGFloat
+    let timerFontSize: CGFloat
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: WorkoutTheme.timelineAnimationInterval, paused: isTimelinePaused)) { context in
-            let date = context.date
-            let remaining = engine.remaining(at: date)
-            let phaseProgress = engine.currentPhaseProgress(at: date)
+        ZStack {
+            WorkoutPhaseProgressRing(progress: phaseProgress)
+                .frame(width: ringSize, height: ringSize)
 
-            ZStack {
-                WorkoutPhaseProgressRing(progress: phaseProgress)
-                    .frame(width: WorkoutTheme.phaseRingSize, height: WorkoutTheme.phaseRingSize)
-
-                Text(TimeFormatting.countdown(remaining))
-                    .font(.system(size: WorkoutTheme.timerFontSize, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(.white)
-                    .contentTransition(.numericText())
-                    .minimumScaleFactor(0.5)
-                    .lineLimit(1)
-                    .padding(.horizontal, 24)
-
-                WorkoutEngineTick(engine: engine, date: date)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(L10n.t("Осталось \(TimeFormatting.countdown(remaining))"))
+            Text(TimeFormatting.countdown(remaining))
+                .font(.system(size: timerFontSize, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.white)
+                .contentTransition(.numericText())
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
+                .padding(.horizontal, 24)
         }
-    }
-}
-
-/// Advances phases when the timeline fires; lives inside `TimelineView` so ticks stay in sync with display.
-private struct WorkoutEngineTick: View {
-    let engine: WorkoutEngine
-    let date: Date
-
-    var body: some View {
-        let _ = engine.tick(now: date)
-        Color.clear.frame(width: 0, height: 0)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.t("Осталось \(TimeFormatting.countdown(remaining))"))
     }
 }
 
 #Preview {
-    let engine = WorkoutEngine()
-    engine.load(preset: WorkoutPreset.defaultNew())
-    engine.start()
-    return WorkoutTimerDisplay(engine: engine)
-        .padding()
-        .background(Color.green)
+    WorkoutTimerDisplay(
+        remaining: 42,
+        phaseProgress: 0.65,
+        ringSize: WorkoutTheme.phaseRingSize,
+        timerFontSize: WorkoutTheme.timerFontSize
+    )
+    .padding()
+    .background(Color.green)
 }

@@ -3,11 +3,19 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var presets: [WorkoutPreset] = []
+    @Query(sort: \StoredPreset.name) private var storedPresets: [StoredPreset]
+    @Binding var selectedTab: AppTab
+    @Binding var editorPresetID: UUID?
+
     @State private var loadError: String?
     @State private var selectedPreset: WorkoutPreset?
     @State private var coordinator = WorkoutSessionCoordinator()
     @State private var startHapticTrigger = false
+    @State private var didSeedDefaults = false
+
+    private var presets: [WorkoutPreset] {
+        storedPresets.map { $0.toWorkoutPreset() }
+    }
 
     private var quickStartPreset: WorkoutPreset? {
         QuickStartResolver.resolve(
@@ -34,10 +42,13 @@ struct HomeView: View {
 
                 Section {
                     if presets.isEmpty {
-                        WorkoutEmptyPresetsHint()
-                            .listRowInsets(listRowInsets)
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
+                        WorkoutEmptyPresetsHint {
+                            editorPresetID = nil
+                            selectedTab = .editor
+                        }
+                        .listRowInsets(listRowInsets)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                     } else {
                         ForEach(presets) { preset in
                             presetRow(preset: preset)
@@ -55,8 +66,7 @@ struct HomeView: View {
             .navigationDestination(item: $selectedPreset) { preset in
                 ActiveWorkoutView(coordinator: coordinator, preset: preset)
             }
-            .task { await reload() }
-            .refreshable { await reload() }
+            .task { await seedDefaultsIfNeeded() }
             .alert(L10n.t("Ошибка"), isPresented: .constant(loadError != nil)) {
                 Button(L10n.t("OK")) { loadError = nil }
             } message: {
@@ -110,13 +120,27 @@ struct HomeView: View {
             }
             .tint(AppColors.destructive)
         }
+        .swipeActions(edge: .leading) {
+            Button {
+                openEditor(for: preset)
+            } label: {
+                Label(L10n.t("Изменить"), systemImage: "pencil")
+            }
+            .tint(AppColors.accent)
+        }
     }
 
-    private func reload() async {
+    private func openEditor(for preset: WorkoutPreset) {
+        editorPresetID = preset.id
+        selectedTab = .editor
+    }
+
+    private func seedDefaultsIfNeeded() async {
+        guard !didSeedDefaults else { return }
+        didSeedDefaults = true
         do {
             let store = PresetStore(modelContext: modelContext)
             try store.seedDefaultsIfNeeded()
-            presets = try store.fetchAll()
         } catch {
             loadError = error.localizedDescription
         }
@@ -129,12 +153,13 @@ struct HomeView: View {
             if AppSettings.shared.lastUsedPresetID == preset.id {
                 AppSettings.shared.lastUsedPresetID = nil
             }
-            presets.removeAll { $0.id == preset.id }
         }
     }
 }
 
 #Preview {
-    HomeView()
+    @Previewable @State var tab = AppTab.home
+    @Previewable @State var editorID: UUID?
+    HomeView(selectedTab: $tab, editorPresetID: $editorID)
         .modelContainer(for: StoredPreset.self, inMemory: true)
 }

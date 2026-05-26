@@ -7,6 +7,8 @@ final class StoredPreset {
     var name: String
     var phasesJSON: String
     var isBuiltIn: Bool
+    var cachedTotalDuration: Double = 0
+    var cachedExpandedPhaseCount: Int = 0
 
     // Legacy fields kept for migration from v1 schema.
     var rounds: Int
@@ -35,31 +37,52 @@ final class StoredPreset {
     }
 
     convenience init(from preset: WorkoutPreset) {
-        self.init(
-            id: preset.id,
-            name: preset.name,
-            phasesJSON: PresetMigration.encodePreset(preset),
-            isBuiltIn: preset.isBuiltIn,
-            rounds: preset.roundCount
+        let normalized = preset.normalized()
+        let metrics = WorkoutPreset.computeMetrics(
+            phases: normalized.phases,
+            roundCount: normalized.roundCount
         )
+        self.init(
+            id: normalized.id,
+            name: normalized.name,
+            phasesJSON: PresetMigration.encodePreset(normalized),
+            isBuiltIn: normalized.isBuiltIn,
+            rounds: normalized.roundCount
+        )
+        cachedTotalDuration = metrics.totalDuration
+        cachedExpandedPhaseCount = metrics.expandedPhaseCount
     }
 
     func toWorkoutPreset() -> WorkoutPreset {
         let definition = resolvedDefinition()
+        refreshCachedMetricsIfNeeded(definition: definition)
         return WorkoutPreset(
             id: id,
             name: name,
             phases: definition.cycle,
             roundCount: definition.roundCount,
-            isBuiltIn: isBuiltIn
+            isBuiltIn: isBuiltIn,
+            cachedTotalDuration: cachedTotalDuration > 0 ? cachedTotalDuration : nil,
+            cachedExpandedPhaseCount: cachedExpandedPhaseCount > 0 ? cachedExpandedPhaseCount : nil
         )
     }
 
     func update(from preset: WorkoutPreset) {
-        name = preset.name
-        phasesJSON = PresetMigration.encodePreset(preset)
-        isBuiltIn = preset.isBuiltIn
-        rounds = preset.roundCount
+        let normalized = preset.normalized()
+        name = normalized.name
+        phasesJSON = PresetMigration.encodePreset(normalized)
+        isBuiltIn = normalized.isBuiltIn
+        rounds = normalized.roundCount
+        let metrics = WorkoutPreset.computeMetrics(phases: normalized.phases, roundCount: normalized.roundCount)
+        cachedTotalDuration = metrics.totalDuration
+        cachedExpandedPhaseCount = metrics.expandedPhaseCount
+    }
+
+    private func refreshCachedMetricsIfNeeded(definition: PresetMigration.PresetPhaseDefinition) {
+        guard cachedTotalDuration <= 0 || cachedExpandedPhaseCount <= 0 else { return }
+        let metrics = WorkoutPreset.computeMetrics(phases: definition.cycle, roundCount: definition.roundCount)
+        cachedTotalDuration = metrics.totalDuration
+        cachedExpandedPhaseCount = metrics.expandedPhaseCount
     }
 
     func resolvedDefinition() -> PresetMigration.PresetPhaseDefinition {

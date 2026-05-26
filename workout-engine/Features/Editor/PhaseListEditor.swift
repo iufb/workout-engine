@@ -13,10 +13,24 @@ final class PhaseListReorderSession {
     var reorderHapticTrigger = false
 
     func updateRowFrames(_ frames: [UUID: CGRect]) {
-        rowFrames = frames
         if draggingID == nil {
+            guard !Self.framesApproximatelyEqual(rowFrames, frames) else { return }
+            rowFrames = frames
             layoutRowFrames = frames
+            return
         }
+        rowFrames = frames
+    }
+
+    private static func framesApproximatelyEqual(_ lhs: [UUID: CGRect], _ rhs: [UUID: CGRect]) -> Bool {
+        guard lhs.count == rhs.count else { return false }
+        for (id, rect) in lhs {
+            guard let other = rhs[id] else { return false }
+            if abs(rect.midY - other.midY) > 0.5 { return false }
+            if abs(rect.width - other.width) > 0.5 { return false }
+            if abs(rect.height - other.height) > 0.5 { return false }
+        }
+        return true
     }
 
     func phaseIndex(for id: UUID, in phases: [PresetPhaseItem]) -> Int {
@@ -178,7 +192,7 @@ private struct PhaseListReorderSupportModifier: ViewModifier {
             }
             .animation(
                 session.draggingID == nil ? EditorTheme.phaseReorderAnimation : nil,
-                value: phases.map(\.id)
+                value: session.draggingID
             )
             .sensoryFeedback(.selection, trigger: session.reorderHapticTrigger)
     }

@@ -27,9 +27,9 @@ struct WorkoutQuickStartCard: View {
                     .symbolRenderingMode(.hierarchical)
             }
 
-            PresetSummaryCard(
+            WorkoutPresetListSummary(
                 totalDuration: preset.estimatedTotalDuration,
-                cyclePhases: preset.phases,
+                cyclePhaseCount: preset.cyclePhaseCount,
                 roundCount: preset.roundCount
             )
 
@@ -47,7 +47,7 @@ struct WorkoutQuickStartCard: View {
 
     private var accessibilityLabel: String {
         let badge = showsLastUsedBadge ? L10n.t("Последняя тренировка, ") : ""
-        return badge + preset.name + ", " + L10n.t("\(preset.phaseCount) фаз, \(TimeFormatting.durationLabel(preset.estimatedTotalDuration))")
+        return badge + preset.name + ", " + L10n.t("\(preset.cyclePhaseCount) фаз, \(TimeFormatting.durationLabel(preset.estimatedTotalDuration))")
     }
 }
 

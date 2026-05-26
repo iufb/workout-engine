@@ -1,38 +1,27 @@
 import SwiftUI
 
 struct WorkoutOverallProgressBar: View {
-    let engine: WorkoutEngine
-
-    private var isTimelinePaused: Bool {
-        engine.status != .running
-    }
+    let progress: Double
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: WorkoutTheme.timelineAnimationInterval, paused: isTimelinePaused)) { context in
-            let progress = engine.progress(at: context.date)
-
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(.white.opacity(0.22))
-                    Capsule()
-                        .fill(.white.opacity(0.92))
-                        .frame(width: max(0, geometry.size.width * min(1, max(0, progress))))
-                        .animation(WorkoutTheme.progressAnimation, value: progress)
-                }
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(.white.opacity(0.22))
+                Capsule()
+                    .fill(.white.opacity(0.92))
+                    .frame(width: max(0, geometry.size.width * min(1, max(0, progress))))
+                    .animation(WorkoutTheme.progressAnimation, value: progress)
             }
-            .frame(height: 5)
-            .accessibilityLabel(L10n.t("Прогресс тренировки"))
-            .accessibilityValue(Text(L10n.t("\(Int(progress * 100))%")))
         }
+        .frame(height: 5)
+        .accessibilityLabel(L10n.t("Прогресс тренировки"))
+        .accessibilityValue(Text(L10n.t("\(Int(progress * 100))%")))
     }
 }
 
 #Preview {
-    let engine = WorkoutEngine()
-    engine.load(preset: .defaultNew())
-    engine.start()
-    return WorkoutOverallProgressBar(engine: engine)
+    WorkoutOverallProgressBar(progress: 0.42)
         .padding()
         .background(Color.green)
 }

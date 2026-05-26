@@ -3,8 +3,10 @@ import SwiftUI
 
 struct PresetEditorView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \StoredPreset.name) private var storedPresets: [StoredPreset]
+    @Binding var presetIDToLoad: UUID?
+
     @State private var editingPresetID: UUID?
-    @State private var savedPresets: [WorkoutPreset] = []
     @State private var name = ""
     @State private var phases: [PresetPhaseItem] = WorkoutPreset.defaultNew().phases
     @State private var roundCount = WorkoutPreset.defaultNew().roundCount
@@ -15,7 +17,15 @@ struct PresetEditorView: View {
     @State private var isPhaseReordering = false
     @State private var phaseReorderSession = PhaseListReorderSession()
     @State private var roundStepperHapticTrigger = false
+    @State private var didSeedDefaults = false
+    @State private var pendingPresetSwitch: WorkoutPreset?
+    @State private var showUnsavedChangesDialog = false
+    @State private var showDeleteConfirmation = false
     @FocusState private var focusedField: EditorFocusField?
+
+    private var savedPresets: [WorkoutPreset] {
+        storedPresets.map { $0.toWorkoutPreset() }
+    }
 
     var body: some View {
         NavigationStack {
@@ -29,33 +39,29 @@ struct PresetEditorView: View {
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
 
-                    Button {
-                        dismissEditorKeyboard(focusedField: $focusedField)
-                    } label: {
-                        PresetSummaryCard(
-                            totalDuration: draftPreset.estimatedTotalDuration,
-                            cyclePhases: phases,
-                            roundCount: roundCount
-                        )
-                        .editorCard()
-                    }
-                    .buttonStyle(.plain)
+                    PresetSummaryCard(
+                        totalDuration: draftPreset.estimatedTotalDuration,
+                        cyclePhases: phases,
+                        roundCount: roundCount
+                    )
+                    .editorCard()
                     .listRowInsets(EditorTheme.listRowInsets)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
+                    .onTapGesture {
+                        dismissEditorKeyboard(focusedField: $focusedField)
+                    }
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Button {
-                            dismissEditorKeyboard(focusedField: $focusedField)
-                        } label: {
-                            Text(L10n.t("Количество кругов"))
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .textCase(.uppercase)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
+                        Text(L10n.t("Количество кругов"))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .textCase(.uppercase)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                dismissEditorKeyboard(focusedField: $focusedField)
+                            }
 
                         roundCountRow
                     }
@@ -80,15 +86,13 @@ struct PresetEditorView: View {
                         }
                     }
                 } header: {
-                    Button {
-                        dismissEditorKeyboard(focusedField: $focusedField)
-                    } label: {
-                        Text(L10n.t("Круг"))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .textCase(nil)
+                    Text(L10n.t("Круг"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            dismissEditorKeyboard(focusedField: $focusedField)
+                        }
+                        .textCase(nil)
                 }
 
                 Section {
@@ -129,7 +133,43 @@ struct PresetEditorView: View {
                     addPhase(kind: kind)
                 }
             }
-            .task { await loadPresets() }
+            .task { await seedAndLoadInitialPreset() }
+            .onChange(of: presetIDToLoad) { _, newID in
+                guard let newID else { return }
+                loadPresetFromHome(id: newID)
+                presetIDToLoad = nil
+            }
+            .confirmationDialog(
+                L10n.t("Несохранённые изменения"),
+                isPresented: $showUnsavedChangesDialog,
+                titleVisibility: .visible
+            ) {
+                Button(L10n.t("Не сохранять"), role: .destructive) {
+                    if let pending = pendingPresetSwitch {
+                        apply(preset: pending)
+                    } else {
+                        startNewPreset()
+                    }
+                    pendingPresetSwitch = nil
+                }
+                Button(L10n.t("Отмена"), role: .cancel) {
+                    pendingPresetSwitch = nil
+                }
+            } message: {
+                Text(L10n.t("Изменения в текущем интервале будут потеряны."))
+            }
+            .confirmationDialog(
+                L10n.t("Удалить интервал?"),
+                isPresented: $showDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button(L10n.t("Удалить"), role: .destructive) {
+                    deleteCurrentPreset()
+                }
+                Button(L10n.t("Отмена"), role: .cancel) {}
+            } message: {
+                Text(L10n.t("Интервал «\(name)» будет удалён без возможности восстановления."))
+            }
             .sensoryFeedback(.success, trigger: saveTrigger)
             .sensoryFeedback(.selection, trigger: roundStepperHapticTrigger)
         }
@@ -137,15 +177,9 @@ struct PresetEditorView: View {
 
     private var roundCountRow: some View {
         HStack {
-            Button {
-                dismissEditorKeyboard(focusedField: $focusedField)
-            } label: {
-                Text(RoundsFormatting.label(count: roundCount))
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
+            Text(RoundsFormatting.label(count: roundCount))
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             RoundCountStepper(
                 count: $roundCount,
@@ -187,7 +221,7 @@ struct PresetEditorView: View {
                 Menu {
                     ForEach(savedPresets) { preset in
                         Button(preset.name) {
-                            apply(preset: preset)
+                            requestApply(preset: preset)
                         }
                     }
                 } label: {
@@ -197,10 +231,22 @@ struct PresetEditorView: View {
         }
 
         ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                startNewPreset()
+            Menu {
+                Button {
+                    requestStartNewPreset()
+                } label: {
+                    Label(L10n.t("Новый"), systemImage: "plus")
+                }
+
+                if canDeleteCurrentPreset {
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label(L10n.t("Удалить интервал"), systemImage: "trash")
+                    }
+                }
             } label: {
-                Label(L10n.t("Новый"), systemImage: "plus")
+                Image(systemName: "ellipsis.circle")
             }
         }
     }
@@ -228,6 +274,12 @@ struct PresetEditorView: View {
         validationHint == nil
     }
 
+    private var canDeleteCurrentPreset: Bool {
+        guard let id = editingPresetID,
+              let preset = savedPresets.first(where: { $0.id == id }) else { return false }
+        return !preset.isBuiltIn
+    }
+
     private var validationHint: String? {
         if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return L10n.t("Введите название")
@@ -241,22 +293,66 @@ struct PresetEditorView: View {
         return nil
     }
 
-    private func loadPresets() async {
+    private var hasUnsavedChanges: Bool {
+        guard let id = editingPresetID,
+              let saved = savedPresets.first(where: { $0.id == id }) else {
+            let defaultPreset = WorkoutPreset.defaultNew()
+            return name != defaultPreset.name
+                || phases != defaultPreset.phases
+                || roundCount != defaultPreset.roundCount
+        }
+        let draft = draftPreset.normalized()
+        let baseline = saved.normalized()
+        return draft.name != baseline.name
+            || draft.phases != baseline.phases
+            || draft.roundCount != baseline.roundCount
+    }
+
+    private func seedAndLoadInitialPreset() async {
+        guard !didSeedDefaults else { return }
+        didSeedDefaults = true
         do {
             let store = PresetStore(modelContext: modelContext)
             try store.seedDefaultsIfNeeded()
-            savedPresets = try store.fetchAll()
-            if let id = editingPresetID, savedPresets.contains(where: { $0.id == id }) {
-                return
-            }
-            if let first = savedPresets.first {
-                apply(preset: first)
-            } else {
-                startNewPreset()
-            }
         } catch {
             startNewPreset()
+            return
         }
+
+        if let id = editingPresetID, savedPresets.contains(where: { $0.id == id }) {
+            return
+        }
+        if let first = savedPresets.first {
+            apply(preset: first)
+        } else {
+            startNewPreset()
+        }
+    }
+
+    private func loadPresetFromHome(id: UUID) {
+        guard let preset = savedPresets.first(where: { $0.id == id }) else { return }
+        requestApply(preset: preset)
+    }
+
+    private func requestStartNewPreset() {
+        dismissEditorKeyboard(focusedField: $focusedField)
+        guard hasUnsavedChanges else {
+            startNewPreset()
+            return
+        }
+        pendingPresetSwitch = nil
+        showUnsavedChangesDialog = true
+    }
+
+    private func requestApply(preset: WorkoutPreset) {
+        dismissEditorKeyboard(focusedField: $focusedField)
+        if preset.id == editingPresetID, !hasUnsavedChanges { return }
+        guard hasUnsavedChanges else {
+            apply(preset: preset)
+            return
+        }
+        pendingPresetSwitch = preset
+        showUnsavedChangesDialog = true
     }
 
     private func startNewPreset() {
@@ -293,13 +389,27 @@ struct PresetEditorView: View {
             try store.save(preset)
             editingPresetID = preset.id
             roundCount = preset.roundCount
-            savedPresets = try store.fetchAll()
             saveMessage = L10n.t("Интервал «\(preset.name)» сохранён")
             presentSaveToast()
             saveTrigger.toggle()
         } catch {
             saveMessage = error.localizedDescription
             presentSaveToast()
+        }
+    }
+
+    private func deleteCurrentPreset() {
+        guard let id = editingPresetID,
+              let preset = savedPresets.first(where: { $0.id == id }) else { return }
+        let store = PresetStore(modelContext: modelContext)
+        try? store.delete(preset)
+        if AppSettings.shared.lastUsedPresetID == id {
+            AppSettings.shared.lastUsedPresetID = nil
+        }
+        if let first = savedPresets.first(where: { $0.id != id }) {
+            apply(preset: first)
+        } else {
+            startNewPreset()
         }
     }
 
@@ -310,22 +420,24 @@ struct PresetEditorView: View {
             showSaveToast = false
         }
     }
-
 }
 
 #Preview("Light") {
-    PresetEditorView()
+    @Previewable @State var presetID: UUID?
+    PresetEditorView(presetIDToLoad: $presetID)
         .modelContainer(for: StoredPreset.self, inMemory: true)
 }
 
 #Preview("Dark") {
-    PresetEditorView()
+    @Previewable @State var presetID: UUID?
+    PresetEditorView(presetIDToLoad: $presetID)
         .modelContainer(for: StoredPreset.self, inMemory: true)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Large Text") {
-    PresetEditorView()
+    @Previewable @State var presetID: UUID?
+    PresetEditorView(presetIDToLoad: $presetID)
         .modelContainer(for: StoredPreset.self, inMemory: true)
         .dynamicTypeSize(.accessibility2)
 }

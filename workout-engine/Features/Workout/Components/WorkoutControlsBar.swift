@@ -16,12 +16,14 @@ struct WorkoutControlsBar: View {
                     engine.pause()
                 }
                 .buttonStyle(WorkoutPrimaryControlButtonStyle(phaseKind: accent))
+                .frame(minHeight: 44)
                 .accessibilityLabel(L10n.t("Пауза"))
             } else if engine.status == .paused {
                 Button(L10n.t("Продолжить")) {
                     engine.resume()
                 }
                 .buttonStyle(WorkoutPrimaryControlButtonStyle(phaseKind: accent))
+                .frame(minHeight: 44)
                 .accessibilityLabel(L10n.t("Продолжить"))
             }
 
@@ -30,14 +32,14 @@ struct WorkoutControlsBar: View {
                     engine.skipPhase()
                 }
                 .buttonStyle(WorkoutSecondaryControlButtonStyle(phaseKind: accent))
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, minHeight: 44)
                 .accessibilityLabel(L10n.t("Пропустить фазу"))
 
                 Button(L10n.t("Стоп")) {
                     onStop()
                 }
                 .buttonStyle(WorkoutSecondaryControlButtonStyle(phaseKind: accent, role: .destructive))
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, minHeight: 44)
                 .accessibilityLabel(L10n.t("Остановить тренировку"))
             }
         }
