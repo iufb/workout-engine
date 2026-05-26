@@ -24,6 +24,10 @@ final class WorkoutEngine {
     private(set) var currentPhaseIndex: Int = 0
     private(set) var phaseEndsAt: Date?
     private(set) var pausedRemaining: TimeInterval?
+
+    private var sessionStartedAt: Date?
+    private var totalPauseDuration: TimeInterval = 0
+    private var pauseBeganAt: Date?
     private var lastCountdownSecondAnnounced: Int?
 
     weak var feedbackHandler: WorkoutFeedbackHandling?
@@ -99,25 +103,33 @@ final class WorkoutEngine {
         currentPhaseIndex = 0
     }
 
-    func start() {
+    func start(sessionStart: Date = .now) {
         guard !phases.isEmpty else { return }
+        sessionStartedAt = sessionStart
+        totalPauseDuration = 0
+        pauseBeganAt = nil
+        pausedRemaining = nil
         status = .running
         currentPhaseIndex = 0
-        pausedRemaining = nil
-        beginCurrentPhase(notify: false)
+        resetCountdownAnnouncement()
+        syncToWallClock(now: sessionStart)
         feedbackHandler?.workoutEngine(self, didEnterPhase: phases[currentPhaseIndex], at: currentPhaseIndex)
     }
 
     func pause() {
         guard status == .running else { return }
-        pausedRemaining = remaining(at: .now)
+        let now = Date()
+        pauseBeganAt = now
+        pausedRemaining = remaining(at: now)
         phaseEndsAt = nil
         status = .paused
         resetCountdownAnnouncement()
     }
 
     func resume() {
-        guard status == .paused, let pausedRemaining else { return }
+        guard status == .paused, let pausedRemaining, let pauseBeganAt else { return }
+        totalPauseDuration += Date().timeIntervalSince(pauseBeganAt)
+        self.pauseBeganAt = nil
         status = .running
         phaseEndsAt = Date().addingTimeInterval(pausedRemaining)
         self.pausedRemaining = nil
@@ -127,10 +139,27 @@ final class WorkoutEngine {
     func skipPhase() {
         guard status == .running || status == .paused else { return }
         if status == .paused {
-            status = .running
+            if let pauseBeganAt {
+                totalPauseDuration += Date().timeIntervalSince(pauseBeganAt)
+            }
+            self.pauseBeganAt = nil
             pausedRemaining = nil
+            status = .running
         }
-        advancePhase()
+
+        let nextIndex = currentPhaseIndex + 1
+        if nextIndex >= phases.count {
+            finish()
+            return
+        }
+
+        let now = Date()
+        let elapsedAtPhaseStart = phases.prefix(nextIndex).reduce(0) { $0 + $1.duration }
+        sessionStartedAt = now.addingTimeInterval(-elapsedAtPhaseStart - totalPauseDuration)
+        currentPhaseIndex = nextIndex
+        phaseEndsAt = now.addingTimeInterval(phases[nextIndex].duration)
+        resetCountdownAnnouncement()
+        feedbackHandler?.workoutEngine(self, didEnterPhase: phases[currentPhaseIndex], at: currentPhaseIndex)
     }
 
     func stop() {
@@ -138,6 +167,9 @@ final class WorkoutEngine {
         status = .idle
         phaseEndsAt = nil
         pausedRemaining = nil
+        sessionStartedAt = nil
+        totalPauseDuration = 0
+        pauseBeganAt = nil
         currentPhaseIndex = 0
         resetCountdownAnnouncement()
         if wasActive {
@@ -145,32 +177,52 @@ final class WorkoutEngine {
         }
     }
 
-    /// Call on UI tick or when returning to foreground.
+    /// Periodic update while the session is running (countdown + wall-clock sync).
     func tick(now: Date = .now) {
-        guard status == .running, let phaseEndsAt else { return }
-
-        let remaining = max(0, phaseEndsAt.timeIntervalSince(now))
-        announceCountdownIfNeeded(remaining: remaining)
-
-        if now >= phaseEndsAt {
-            advancePhase()
-        }
+        syncToWallClock(now: now)
     }
 
-    func resync() {
-        tick()
+    /// Align phase index and end time with elapsed workout time (handles background suspend).
+    func syncToWallClock(now: Date = .now) {
+        guard status == .running, let sessionStartedAt else { return }
+
+        let elapsed = now.timeIntervalSince(sessionStartedAt) - totalPauseDuration
+        guard elapsed >= 0 else { return }
+
+        var consumed: TimeInterval = 0
+        for (index, phase) in phases.enumerated() {
+            let phaseEnd = consumed + phase.duration
+            if elapsed < phaseEnd {
+                let remainingInPhase = phaseEnd - elapsed
+                applyPhase(
+                    index: index,
+                    remainingInPhase: remainingInPhase,
+                    now: now,
+                    previousIndex: currentPhaseIndex
+                )
+                return
+            }
+            consumed = phaseEnd
+        }
+        finish()
     }
 
-    private func beginCurrentPhase(notify: Bool) {
-        guard let step = currentPhase else {
-            finish()
-            return
+    private func applyPhase(
+        index: Int,
+        remainingInPhase: TimeInterval,
+        now: Date,
+        previousIndex: Int
+    ) {
+        let indexChanged = index != previousIndex
+        currentPhaseIndex = index
+        phaseEndsAt = now.addingTimeInterval(remainingInPhase)
+
+        if indexChanged {
+            resetCountdownAnnouncement()
+            feedbackHandler?.workoutEngine(self, didEnterPhase: phases[index], at: index)
         }
-        resetCountdownAnnouncement()
-        phaseEndsAt = Date().addingTimeInterval(step.duration)
-        if notify {
-            feedbackHandler?.workoutEngine(self, didEnterPhase: step, at: currentPhaseIndex)
-        }
+
+        announceCountdownIfNeeded(remaining: remainingInPhase)
     }
 
     private func announceCountdownIfNeeded(remaining: TimeInterval) {
@@ -189,21 +241,13 @@ final class WorkoutEngine {
         lastCountdownSecondAnnounced = nil
     }
 
-    private func advancePhase() {
-        let nextIndex = currentPhaseIndex + 1
-        if nextIndex >= phases.count {
-            finish()
-            return
-        }
-        currentPhaseIndex = nextIndex
-        beginCurrentPhase(notify: true)
-        feedbackHandler?.workoutEngine(self, didEnterPhase: phases[currentPhaseIndex], at: currentPhaseIndex)
-    }
-
     private func finish() {
         status = .finished
         phaseEndsAt = nil
         pausedRemaining = nil
+        sessionStartedAt = nil
+        totalPauseDuration = 0
+        pauseBeganAt = nil
         resetCountdownAnnouncement()
         feedbackHandler?.workoutEngineDidFinish(self)
     }

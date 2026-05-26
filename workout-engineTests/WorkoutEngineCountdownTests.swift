@@ -20,7 +20,7 @@ final class WorkoutEngineCountdownTests: XCTestCase {
                 phases: [PresetPhaseItem(kind: .work, durationSeconds: 10)]
             )
         )
-        engine.start()
+        engine.start(sessionStart: start)
 
         engine.tick(now: start.addingTimeInterval(7.2))
         engine.tick(now: start.addingTimeInterval(7.0))
@@ -38,7 +38,7 @@ final class WorkoutEngineCountdownTests: XCTestCase {
                 phases: [PresetPhaseItem(kind: .work, durationSeconds: 10)]
             )
         )
-        engine.start()
+        engine.start(sessionStart: start)
 
         engine.tick(now: start.addingTimeInterval(5.0))
         XCTAssertTrue(mockFeedback.countdownSeconds.isEmpty)
@@ -55,7 +55,7 @@ final class WorkoutEngineCountdownTests: XCTestCase {
                 ]
             )
         )
-        engine.start()
+        engine.start(sessionStart: start)
 
         engine.tick(now: start.addingTimeInterval(2.1))
         engine.tick(now: start.addingTimeInterval(3.1))
@@ -76,7 +76,7 @@ final class WorkoutEngineCountdownTests: XCTestCase {
                 phases: [PresetPhaseItem(kind: .work, durationSeconds: 10)]
             )
         )
-        engine.start()
+        engine.start(sessionStart: start)
 
         engine.tick(now: start.addingTimeInterval(7.5))
         XCTAssertEqual(mockFeedback.countdownSeconds, [3])

@@ -729,9 +729,15 @@
     },
     "Круг %lld / %lld · Фаза %lld / %lld" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Round %1$lld / %2$lld · Phase %3$lld / %4$lld"
+          }
+        },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Круг %1$lld / %2$lld · Фаза %3$lld / %4$lld"
           }
         }
@@ -1112,7 +1118,20 @@
       }
     },
     "Прервать" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прервать"
+          }
+        }
+      }
     },
     "Пресет Tabata обновлён" : {
       "extractionState" : "stale",
@@ -1584,13 +1603,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Phase %lld / %lld"
+            "value" : "Phase %1$lld / %2$lld"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Фаза %lld / %lld"
+            "value" : "Фаза %1$lld / %2$lld"
           }
         }
       }

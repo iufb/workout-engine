@@ -7,19 +7,25 @@ import UIKit
 final class WorkoutSessionCoordinator: WorkoutFeedbackHandling {
     let engine = WorkoutEngine()
     private var tickTask: Task<Void, Never>?
+    private var isWorkoutSessionActive = false
 
     init() {
         engine.feedbackHandler = self
+        AudioSessionManager.shared.onInterruptionEnded = { [weak self] in
+            self?.restoreSessionAudioIfNeeded()
+        }
     }
 
     func start(preset: WorkoutPreset) {
         AppSettings.shared.lastUsedPresetID = preset.id
+        isWorkoutSessionActive = true
         do {
             try AudioSessionManager.shared.activateForWorkout()
+            SoundPlayer.shared.prepareForWorkoutSession()
         } catch {
             // Continue without background audio if session fails.
         }
-        SoundPlayer.shared.startKeepAlive()
+        SoundPlayer.shared.startSessionAudio()
         updateIdleTimer(disabled: AppSettings.shared.keepScreenOnDuringWorkout)
         engine.load(preset: preset)
         engine.start()
@@ -29,6 +35,10 @@ final class WorkoutSessionCoordinator: WorkoutFeedbackHandling {
     func stop() {
         stopTickLoop()
         engine.stop()
+    }
+
+    func syncSession(now: Date = .now) {
+        engine.syncToWallClock(now: now)
     }
 
     // MARK: - WorkoutFeedbackHandling
@@ -65,15 +75,23 @@ final class WorkoutSessionCoordinator: WorkoutFeedbackHandling {
     }
 
     private func teardownSession() {
+        isWorkoutSessionActive = false
         stopTickLoop()
-        SoundPlayer.shared.stopKeepAlive()
+        SoundPlayer.shared.stopSessionAudio()
         AudioSessionManager.shared.deactivate()
         updateIdleTimer(disabled: false)
     }
 
+    private func restoreSessionAudioIfNeeded() {
+        guard isWorkoutSessionActive else { return }
+        guard engine.status == .running || engine.status == .paused else { return }
+        SoundPlayer.shared.prepareForWorkoutSession()
+        SoundPlayer.shared.startSessionAudio()
+    }
+
     private func startTickLoop() {
         stopTickLoop()
-        let interval = WorkoutTheme.timelineAnimationInterval
+        let interval = WorkoutTheme.timelineTickInterval
         tickTask = Task { @MainActor in
             while !Task.isCancelled {
                 if engine.status == .running {

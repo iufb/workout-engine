@@ -13,15 +13,16 @@ final class WorkoutEngineTests: XCTestCase {
             ]
         )
         engine.load(preset: preset)
-        engine.start()
+        let start = Date()
+        engine.start(sessionStart: start)
 
         XCTAssertEqual(engine.status, .running)
         XCTAssertEqual(engine.currentPhase?.kind, .prepare)
 
-        engine.tick(now: Date().addingTimeInterval(1.1))
+        engine.tick(now: start.addingTimeInterval(1.1))
         XCTAssertEqual(engine.currentPhase?.kind, .work)
 
-        engine.tick(now: Date().addingTimeInterval(2.2))
+        engine.tick(now: start.addingTimeInterval(2.2))
         XCTAssertEqual(engine.status, .finished)
     }
 
@@ -83,7 +84,10 @@ final class WorkoutEngineTests: XCTestCase {
             )
         )
         engine.start()
-        XCTAssertEqual(engine.phasePositionLabel, L10n.t("Круг 1 / 2 · Фаза 1 / 2"))
+        XCTAssertEqual(
+            engine.phasePositionLabel,
+            L10n.t("Круг \(1) / \(2) · Фаза \(1) / \(2)")
+        )
     }
 
     func testPhaseNumberTracking() {
@@ -111,9 +115,9 @@ final class WorkoutEngineTests: XCTestCase {
                 phases: [PresetPhaseItem(kind: .work, durationSeconds: 30)]
             )
         )
-        engine.start()
-
         let start = Date()
+        engine.start(sessionStart: start)
+
         let initial = engine.remaining(at: start)
         let later = engine.remaining(at: start.addingTimeInterval(5))
 
@@ -130,9 +134,9 @@ final class WorkoutEngineTests: XCTestCase {
                 phases: [PresetPhaseItem(kind: .work, durationSeconds: 10)]
             )
         )
-        engine.start()
-
         let start = Date()
+        engine.start(sessionStart: start)
+
         let early = engine.progress(at: start)
         let later = engine.progress(at: start.addingTimeInterval(5))
 
@@ -148,10 +152,72 @@ final class WorkoutEngineTests: XCTestCase {
                 phases: [PresetPhaseItem(kind: .work, durationSeconds: 20)]
             )
         )
-        engine.start()
-
         let start = Date()
+        engine.start(sessionStart: start)
+
         XCTAssertEqual(engine.currentPhaseProgress(at: start), 0, accuracy: 0.01)
         XCTAssertEqual(engine.currentPhaseProgress(at: start.addingTimeInterval(10)), 0.5, accuracy: 0.05)
+    }
+
+    func testSyncSkipsMultiplePhases() {
+        let engine = WorkoutEngine()
+        engine.load(
+            preset: WorkoutPreset(
+                name: "Sync",
+                phases: [
+                    PresetPhaseItem(kind: .prepare, durationSeconds: 2),
+                    PresetPhaseItem(kind: .work, durationSeconds: 2),
+                    PresetPhaseItem(kind: .rest, durationSeconds: 2),
+                ]
+            )
+        )
+        let start = Date()
+        engine.start(sessionStart: start)
+
+        engine.syncToWallClock(now: start.addingTimeInterval(5.5))
+        XCTAssertEqual(engine.currentPhaseIndex, 2)
+        XCTAssertEqual(engine.currentPhase?.kind, .rest)
+        XCTAssertEqual(engine.remaining(at: start.addingTimeInterval(5.5)), 0.5, accuracy: 0.1)
+
+        engine.syncToWallClock(now: start.addingTimeInterval(7))
+        XCTAssertEqual(engine.status, .finished)
+    }
+
+    func testSyncMidPhaseRemaining() {
+        let engine = WorkoutEngine()
+        engine.load(
+            preset: WorkoutPreset(
+                name: "Mid",
+                phases: [PresetPhaseItem(kind: .work, durationSeconds: 30)]
+            )
+        )
+        let start = Date()
+        engine.start(sessionStart: start)
+
+        let mid = start.addingTimeInterval(15)
+        engine.syncToWallClock(now: mid)
+        XCTAssertEqual(engine.remaining(at: mid), 15, accuracy: 0.5)
+    }
+
+    func testPauseExcludedFromElapsed() {
+        let engine = WorkoutEngine()
+        engine.load(
+            preset: WorkoutPreset(
+                name: "Pause",
+                phases: [PresetPhaseItem(kind: .work, durationSeconds: 30)]
+            )
+        )
+        let start = Date()
+        engine.start(sessionStart: start)
+
+        engine.syncToWallClock(now: start.addingTimeInterval(5))
+        let remainingBeforePause = engine.remaining
+        XCTAssertEqual(remainingBeforePause, 25, accuracy: 0.5)
+
+        engine.pause()
+        Thread.sleep(forTimeInterval: 0.05)
+        engine.resume()
+
+        XCTAssertEqual(engine.remaining, remainingBeforePause, accuracy: 1.0)
     }
 }

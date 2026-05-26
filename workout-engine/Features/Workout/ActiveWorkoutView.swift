@@ -121,8 +121,11 @@ struct ActiveWorkoutView: View {
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                engine.resync()
+            switch newPhase {
+            case .active, .background:
+                coordinator.syncSession()
+            default:
+                break
             }
         }
         .onChange(of: engine.status) { _, status in

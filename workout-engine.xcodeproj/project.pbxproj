@@ -21,9 +21,22 @@
 		1E7F4E102FC49A000097D051 /* workout-engineTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "workout-engineTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1E37C3712FC5F77E0085FED0 /* Exceptions for "workout-engine" folder in "workout-engine" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1E7F4DD72FC4978D0097D051 /* workout-engine */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1E7F4DDA2FC4978D0097D051 /* workout-engine */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1E37C3712FC5F77E0085FED0 /* Exceptions for "workout-engine" folder in "workout-engine" target */,
+			);
 			path = "workout-engine";
 			sourceTree = "<group>";
 		};
@@ -253,6 +266,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -310,6 +324,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -331,8 +346,10 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "workout-engine/Info.plist";
 				INFOPLIST_KEY_CFBundleDevelopmentRegion = ru;
 				INFOPLIST_KEY_CFBundleDisplayName = "Workout Engine";
+				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = audio;
@@ -365,8 +382,10 @@
 				DEVELOPMENT_TEAM = H59AQD95XJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "workout-engine/Info.plist";
 				INFOPLIST_KEY_CFBundleDevelopmentRegion = ru;
 				INFOPLIST_KEY_CFBundleDisplayName = "Workout Engine";
+				INFOPLIST_KEY_LSBackgroundOnly = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = audio;
