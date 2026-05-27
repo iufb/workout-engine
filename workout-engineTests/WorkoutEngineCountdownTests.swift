@@ -100,6 +100,8 @@ private final class MockWorkoutFeedback: WorkoutFeedbackHandling {
 
     func workoutEngine(_ engine: WorkoutEngine, didEnterPhase step: PhaseStep, at index: Int) {}
 
+    func workoutEngine(_ engine: WorkoutEngine, didCompletePhase step: PhaseStep, at index: Int) {}
+
     func workoutEngine(_ engine: WorkoutEngine, countdownSecond second: Int, for phase: PhaseStep) {
         countdownSeconds.append(second)
     }

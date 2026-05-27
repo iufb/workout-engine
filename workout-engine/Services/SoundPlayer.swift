@@ -9,6 +9,7 @@ enum WorkoutSound: String, CaseIterable {
     case workoutComplete = "workout_complete"
     case phaseStartLoud = "phase_start_loud"
     case phaseCountdownSoft = "phase_countdown_soft"
+    case phaseEndRing = "steel_bell"
 }
 
 final class SoundPlayer {
@@ -138,6 +139,12 @@ final class SoundPlayer {
         play(.workoutComplete)
     }
 
+    /// Ring when a phase completes (right before switching to the next one).
+    func playPhaseEndRing(for kind: PhaseKind) {
+        guard AppSettings.shared.shouldPlaySound(for: kind) else { return }
+        play(.phaseEndRing)
+    }
+
     private func play(_ sound: WorkoutSound, volume: Float = 1.0) {
         pauseKeepAliveForEffect()
 
@@ -179,6 +186,7 @@ final class SoundPlayer {
         case .restStart: systemSoundID = 1052
         case .workoutComplete: systemSoundID = 1025
         case .phaseCountdownSoft: systemSoundID = 1103
+        case .phaseEndRing: systemSoundID = 1304
         }
         AudioServicesPlaySystemSound(systemSoundID)
     }

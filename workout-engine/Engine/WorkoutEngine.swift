@@ -10,6 +10,7 @@ enum WorkoutEngineStatus: Equatable, Sendable {
 
 protocol WorkoutFeedbackHandling: AnyObject {
     func workoutEngine(_ engine: WorkoutEngine, didEnterPhase step: PhaseStep, at index: Int)
+    func workoutEngine(_ engine: WorkoutEngine, didCompletePhase step: PhaseStep, at index: Int)
     func workoutEngine(_ engine: WorkoutEngine, countdownSecond second: Int, for phase: PhaseStep)
     func workoutEngineDidFinish(_ engine: WorkoutEngine)
     func workoutEngineDidStop(_ engine: WorkoutEngine)
@@ -138,6 +139,7 @@ final class WorkoutEngine {
 
     func skipPhase() {
         guard status == .running || status == .paused else { return }
+        let previousIndex = currentPhaseIndex
         if status == .paused {
             if let pauseBeganAt {
                 totalPauseDuration += Date().timeIntervalSince(pauseBeganAt)
@@ -159,6 +161,9 @@ final class WorkoutEngine {
         currentPhaseIndex = nextIndex
         phaseEndsAt = now.addingTimeInterval(phases[nextIndex].duration)
         resetCountdownAnnouncement()
+        if phases.indices.contains(previousIndex) {
+            feedbackHandler?.workoutEngine(self, didCompletePhase: phases[previousIndex], at: previousIndex)
+        }
         feedbackHandler?.workoutEngine(self, didEnterPhase: phases[currentPhaseIndex], at: currentPhaseIndex)
     }
 
@@ -219,6 +224,9 @@ final class WorkoutEngine {
 
         if indexChanged {
             resetCountdownAnnouncement()
+            if phases.indices.contains(previousIndex) {
+                feedbackHandler?.workoutEngine(self, didCompletePhase: phases[previousIndex], at: previousIndex)
+            }
             feedbackHandler?.workoutEngine(self, didEnterPhase: phases[index], at: index)
         }
 

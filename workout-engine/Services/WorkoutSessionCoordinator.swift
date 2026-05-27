@@ -46,8 +46,19 @@ final class WorkoutSessionCoordinator: WorkoutFeedbackHandling {
     nonisolated func workoutEngine(_ engine: WorkoutEngine, didEnterPhase step: PhaseStep, at index: Int) {
         Task { @MainActor in
             guard engine.status == .running else { return }
-            SoundPlayer.shared.playPhaseStartLoud(for: step.kind)
+            // Keep a single cue on phase boundaries: "ring" is played on `didCompletePhase`.
+            // Still play a start cue for the very first phase so session start feels responsive.
+            if index == 0 {
+                SoundPlayer.shared.playPhaseStartLoud(for: step.kind)
+            }
             HapticService.shared.phaseTransition(for: step.kind)
+        }
+    }
+
+    nonisolated func workoutEngine(_ engine: WorkoutEngine, didCompletePhase step: PhaseStep, at index: Int) {
+        Task { @MainActor in
+            guard engine.status == .running else { return }
+            SoundPlayer.shared.playPhaseEndRing(for: step.kind)
         }
     }
 
