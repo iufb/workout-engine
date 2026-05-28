@@ -5,7 +5,9 @@ enum WorkoutTheme {
     static let horizontalPadding = EditorTheme.horizontalPadding
     static let sectionSpacing = EditorTheme.sectionSpacing
     static let quickStartMinHeight: CGFloat = 160
-    static let finishOverlayDuration: Duration = .seconds(1.25)
+    static let finishOverlayDuration: Duration = .seconds(2.0)
+    static let confettiPieceCount = 80
+    static let confettiAnimationInterval: TimeInterval = 1.0 / 30.0
 
     static let timerFontSize: CGFloat = 96
     static let phaseRingSize: CGFloat = 260
